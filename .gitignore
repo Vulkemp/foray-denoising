@@ -1,0 +1,16 @@
+sponza_model/
+out/
+.vs/
+downloads/
+build/
+logs/
+*.spv
+
+imgui.ini
+
+*cmakegenerated*
+
+glTF-Sample-Models/*
+glTF-Sample-Models
+
+.vscode/settings.json

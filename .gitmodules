@@ -1,0 +1,6 @@
+[submodule "foray"]
+	path = foray
+	url = https://github.com/Vulkemp/foray
+[submodule "denoisers/foray-denoiser-optix"]
+	path = denoisers/foray-denoiser-optix
+	url = https://github.com/Vulkemp/foray-denoiser-optix
