@@ -4,3 +4,6 @@
 [submodule "denoisers/foray-denoiser-optix"]
 	path = denoisers/foray-denoiser-optix
 	url = https://github.com/Vulkemp/foray-denoiser-optix
+[submodule "denoisers/foray-denoiser-svgf"]
+	path = denoisers/foray-denoiser-svgf
+	url = https://github.com/Vulkemp/foray-denoiser-svgf.git
