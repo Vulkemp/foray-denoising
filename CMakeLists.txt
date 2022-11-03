@@ -9,7 +9,7 @@ include("foray/cmakescripts/compilerconfig.cmake")
 set(SDL2_HINT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/foray/third_party")
 include("foray/cmakescripts/locatesdl2.cmake")
 
-option(ENABLE_OPTIX "If set, enables OptiX (requires Cuda and OptiX include)" ON)
+option(ENABLE_OPTIX "If set, enables OptiX (requires Cuda and OptiX include)" OFF)
 
 # Add subdirectories
 add_subdirectory("foray")

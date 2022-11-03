@@ -1,9 +1,6 @@
 cmake_minimum_required(VERSION 3.18)
 
-# name project after the folder its located in
-get_filename_component(proj_name ${CMAKE_CURRENT_LIST_DIR} NAME)
-
-project(${proj_name})
+project("foray-denoising")
 
 MESSAGE("--- << CMAKE of ${PROJECT_NAME} >> --- ")
 MESSAGE(STATUS "CURRENT SOURCE DIR \"${CMAKE_CURRENT_SOURCE_DIR}\"")
@@ -25,9 +22,6 @@ endif ()
 add_executable(${PROJECT_NAME} ${src})
 
 # Assign Compile Flags
-if (ENABLE_GBUFFER_BENCH)
-    target_compile_definitions(${PROJECT_NAME} ENABLE_GBUFFER_BENCH)
-endif()
 target_compile_options(${PROJECT_NAME} PUBLIC "-DCWD_OVERRIDE=\"${CMAKE_CURRENT_LIST_DIR}\"")
 target_compile_options(${PROJECT_NAME} PUBLIC "-DDATA_DIR=\"${CMAKE_SOURCE_DIR}/data\"")
 
@@ -50,5 +44,21 @@ target_include_directories(
 	${PROJECT_NAME}
 	PUBLIC "${CMAKE_SOURCE_DIR}/foray/src"
 	PUBLIC "${CMAKE_SOURCE_DIR}/foray/third_party"
+	PUBLIC "${CMAKE_SOURCE_DIR}/denoisers/foray-denoiser-svgf/src"
 	PUBLIC ${Vulkan_INCLUDE_DIR}
 )
+
+if (ENABLE_OPTIX)
+	target_include_directories(
+		${PROJECT_NAME}
+		PUBLIC "${CMAKE_SOURCE_DIR}/denoisers/foray-denoiser-optix/src"
+	)
+	target_link_libraries(
+		${PROJECT_NAME}
+		PUBLIC foray-denoiser-optix
+	)
+	target_compile_options(
+		${PROJECT_NAME} 
+		PUBLIC "-DENABLE_OPTIX"
+	)
+endif()
