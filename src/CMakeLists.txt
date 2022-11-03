@@ -29,6 +29,7 @@ target_compile_options(${PROJECT_NAME} PUBLIC "-DDATA_DIR=\"${CMAKE_SOURCE_DIR}/
 target_link_libraries(
 	${PROJECT_NAME}
 	PUBLIC foray
+	PUBLIC foray-denoiser-svgf
 )
 
 # Windows requires SDL2 libs linked specifically
