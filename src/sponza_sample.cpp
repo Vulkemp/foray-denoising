@@ -116,12 +116,7 @@ void ImportanceSamplingRtProject::ApiOnEvent(const foray::osi::Event* event)
 void ImportanceSamplingRtProject::loadScene()
 {
     std::vector<std::string> scenePaths({
-        // "models/minimal.gltf",
-        // "../glTF-Sample-Models/2.0/BoomBoxWithAxes/glTF/BoomBoxWithAxes.gltf",
-        // "../sponza_model/Main/NewSponza_Main_Blender_glTF.gltf",
-        // "../sponza_model/PKG_B_Ivy/NewSponza_IvyGrowth_glTF.gltf",
-        "../glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf", "../glTF-Sample-Models/2.0/InterpolationTest/glTF/InterpolationTest.gltf",
-        // "../../foray-examples/data/gltf/minimal/minimal.gltf"
+        DATA_DIR "/gltf/testbox/testbox.gltf"
     });
 
     mScene = std::make_unique<foray::scene::Scene>(&mContext);
@@ -148,7 +143,7 @@ void ImportanceSamplingRtProject::LoadEnvironmentMap()
     constexpr VkFormat                    hdrVkFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
     foray::util::ImageLoader<hdrVkFormat> imageLoader;
     // env maps at https://polyhaven.com/a/alps_field
-    std::string pathToEnvMap = std::string(foray::osi::CurrentWorkingDirectory()) + "/../data/textures/envmap.exr";
+    std::string pathToEnvMap = DATA_DIR "/env/default/envmap.exr";
     if(!imageLoader.Init(pathToEnvMap))
     {
         foray::logger()->warn("Loading env map failed \"{}\"", pathToEnvMap);
