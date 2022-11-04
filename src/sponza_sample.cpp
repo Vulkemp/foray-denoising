@@ -273,6 +273,7 @@ void ImportanceSamplingRtProject::ConfigureStages()
     mDenoisedImage.Create(&mContext, ci);
 
     foray::stages::DenoiserConfig config(rtImage, &mDenoisedImage, &mGbufferStage);
+    config.AuxiliaryInputs[mNoiseSource.GetImage().GetName()] = &mNoiseSource.GetImage();
     config.Semaphore   = &mDenoiseSemaphore;
 
     mDenoiser.Init(&mContext, config);
