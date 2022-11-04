@@ -43,7 +43,7 @@ class ImportanceSamplingRtProject : public foray::base::DefaultAppBase
     virtual void ApiOnEvent(const foray::osi::Event* event) override;
 
     virtual void ApiRender(foray::base::FrameRenderInfo& renderInfo) override;
-    virtual void ApiQueryResultsAvailable(uint64_t frameIndex) override;
+    virtual void ApiFrameFinishedExecuting(uint64_t frameIndex) override;
     virtual void ApiOnResized(VkExtent2D size) override;
     virtual void ApiDestroy() override;
 

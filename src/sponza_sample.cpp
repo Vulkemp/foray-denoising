@@ -272,10 +272,7 @@ void ImportanceSamplingRtProject::ConfigureStages()
 
     mDenoisedImage.Create(&mContext, ci);
 
-    foray::stages::DenoiserConfig config(rtImage, &mDenoisedImage);
-    config.AlbedoInput = albedoImage;
-    config.NormalInput = normalImage;
-    config.MotionInput = motionImage;
+    foray::stages::DenoiserConfig config(rtImage, &mDenoisedImage, &mGbufferStage);
     config.Semaphore   = &mDenoiseSemaphore;
 
     mDenoiser.Init(&mContext, config);
@@ -328,7 +325,7 @@ void ImportanceSamplingRtProject::ApiRender(foray::base::FrameRenderInfo& render
     primaryCmdBuffer.Submit();
 }
 
-void ImportanceSamplingRtProject::ApiQueryResultsAvailable(uint64_t frameIndex)
+void ImportanceSamplingRtProject::ApiFrameFinishedExecuting(uint64_t frameIndex)
 {
 #ifdef ENABLE_GBUFFER_BENCH
     mGbufferStage.GetBenchmark().LogQueryResults(frameIndex);
