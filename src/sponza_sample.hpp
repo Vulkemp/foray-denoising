@@ -17,7 +17,7 @@
 #include <stdexcept>
 #include <vector>
 #include <stdint.h>
-#include <foray_svgf.hpp>
+#include <foray_asvgf.hpp>
 
 #include "customrtstage.hpp"
 #ifdef ENABLE_OPTIX
@@ -76,7 +76,7 @@ class ImportanceSamplingRtProject : public foray::base::DefaultAppBase
     #endif
     foray::util::ExternalSemaphore mDenoiseSemaphore;
 
-    foray::svgf::SvgfDenoiserStage mDenoiser;
+    foray::asvgf::ASvgfDenoiserStage mDenoiser;
 
     void ConfigureStages();
 
