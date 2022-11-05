@@ -195,6 +195,7 @@ void ImportanceSamplingRtProject::ApiDestroy()
     mNoiseSource.Destroy();
     mScene->Destroy();
     mScene = nullptr;
+    mDenoiser.Destroy();
     mGbufferStage.Destroy();
     mImguiStage.Destroy();
     mRaytraycingStage.Destroy();
