@@ -12,7 +12,6 @@ void ImportanceSamplingRtProject::ApiBeforeInit()
     mWindowSwapchain.GetWindow().DisplayMode(foray::osi::EDisplayMode::WindowedResizable);
 }
 
-// And this is the callback that the validator will call
 VkBool32 myDebugCallback(VkDebugReportFlagsEXT      flags,
                          VkDebugReportObjectTypeEXT objectType,
                          uint64_t                   object,
@@ -99,7 +98,7 @@ void ImportanceSamplingRtProject::ApiOnEvent(const foray::osi::Event* event)
     {
         if(binary->SourceInput->GetButtonId() == foray::osi::EButton::Keyboard_1 && binary->State)
         {
-            mCurrentOutput = foray::stages::RaytracingStage::RaytracingRenderTargetName;
+            mCurrentOutput = foray::stages::ExtRaytracingStage::OutputName;
             mOutputChanged = true;
         }
         if(binary->SourceInput->GetButtonId() == foray::osi::EButton::Keyboard_2 && binary->State)
@@ -260,8 +259,8 @@ void ImportanceSamplingRtProject::ConfigureStages()
     auto normalImage = mGbufferStage.GetImageOutput(foray::stages::GBufferStage::NormalOutputName);
     auto motionImage = mGbufferStage.GetImageOutput(foray::stages::GBufferStage::MotionOutputName);
 
-    mRaytraycingStage.Init(&mContext, mScene.get(), &mEnvMapSampled, &mNoiseSource.GetSampler());
-    auto rtImage = mRaytraycingStage.GetImageOutput(foray::stages::RaytracingStage::RaytracingRenderTargetName);
+    mRaytraycingStage.Init(&mContext, mScene.get(), &mEnvMapSampled, &mNoiseSource.GetImage());
+    auto rtImage = mRaytraycingStage.GetImageOutput(foray::stages::ExtRaytracingStage::OutputName);
 
     mDenoiseSemaphore.Create(&mContext);
 
@@ -274,7 +273,7 @@ void ImportanceSamplingRtProject::ConfigureStages()
     mDenoisedImage.Create(&mContext, ci);
 
     foray::stages::DenoiserConfig config(rtImage, &mDenoisedImage, &mGbufferStage);
-    config.AuxiliaryInputs[mNoiseSource.GetImage().GetName()] = &mNoiseSource.GetImage();
+    config.AuxiliaryInputs[std::string(mNoiseSource.GetImage().GetName())] = &mNoiseSource.GetImage();
     config.Semaphore   = &mDenoiseSemaphore;
 
     mDenoiser.Init(&mContext, config);
@@ -353,7 +352,7 @@ void ImportanceSamplingRtProject::UpdateOutputs()
     lUpdateOutput(mOutputs, mGbufferStage, foray::stages::GBufferStage::AlbedoOutputName);
     lUpdateOutput(mOutputs, mGbufferStage, foray::stages::GBufferStage::PositionOutputName);
     lUpdateOutput(mOutputs, mGbufferStage, foray::stages::GBufferStage::NormalOutputName);
-    lUpdateOutput(mOutputs, mRaytraycingStage, foray::stages::RaytracingStage::RaytracingRenderTargetName);
+    lUpdateOutput(mOutputs, mRaytraycingStage, foray::stages::ExtRaytracingStage::OutputName);
     mOutputs.emplace("Denoised Image", &mDenoisedImage);
 
     if(mCurrentOutput.size() == 0 || !mOutputs.contains(mCurrentOutput))
@@ -373,6 +372,6 @@ void ImportanceSamplingRtProject::ApplyOutput()
 {
     vkDeviceWaitIdle(mDevice);
     auto output = mOutputs[mCurrentOutput];
-    mImguiStage.SetTargetImage(output);
+    mImguiStage.SetBackgroundImage(output);
     mImageToSwapchainStage.SetSrcImage(output);
 }

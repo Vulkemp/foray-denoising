@@ -1,21 +1,7 @@
 #include "customrtstage.hpp"
 #include <core/foray_shadermanager.hpp>
 
-void CustomRtStage::Init(foray::core::Context *context, foray::scene::Scene *scene, foray::core::CombinedImageSampler *envmap, foray::core::CombinedImageSampler *noiseSource)
-{
-    mContext = context;
-    mScene = scene;
-    if (!!envmap)
-    {
-        mEnvMap = envmap;
-    }
-    if (!!noiseSource)
-    {
-        mNoiseSource = noiseSource;
-    }
-    RaytracingStage::Init();
-}
-void CustomRtStage::CreateRaytraycingPipeline()
+void CustomRtStage::CreateRtPipeline()
 {
     mRaygen.Create(mContext);
     mDefault_AnyHit.Create(mContext);
@@ -25,25 +11,15 @@ void CustomRtStage::CreateRaytraycingPipeline()
     mPipeline.GetRaygenSbt().SetGroup(0, &(mRaygen.Module));
     mPipeline.GetMissSbt().SetGroup(0, &(mDefault_Miss.Module));
     mPipeline.GetHitSbt().SetGroup(0, &(mDefault_ClosestHit.Module), &(mDefault_AnyHit.Module), nullptr);
-    RaytracingStage::CreateRaytraycingPipeline();
+
+    mShaderSourcePaths.insert(mShaderSourcePaths.end(), {mRaygen.Path, mDefault_AnyHit.Path, mDefault_ClosestHit.Path, mDefault_Miss.Path});
+
+    mPipeline.Build(mContext, mPipelineLayout);
 }
 
-void CustomRtStage::OnShadersRecompiled()
+void CustomRtStage::DestroyRtPipeline()
 {
-    foray::core::ShaderManager& shaderCompiler = foray::core::ShaderManager::Instance();
-    bool rebuild = shaderCompiler.HasShaderBeenRecompiled(mRaygen.Path) || shaderCompiler.HasShaderBeenRecompiled(mDefault_AnyHit.Path) || shaderCompiler.HasShaderBeenRecompiled(mDefault_ClosestHit.Path) || shaderCompiler.HasShaderBeenRecompiled(mDefault_Miss.Path);
-    if (rebuild)
-    {
-        ReloadShaders();
-    }
-}
-void CustomRtStage::Destroy()
-{
-    RaytracingStage::Destroy();
-}
-
-void CustomRtStage::DestroyShaders()
-{
+    mPipeline.Destroy();
     mRaygen.Destroy();
     mDefault_AnyHit.Destroy();
     mDefault_ClosestHit.Destroy();

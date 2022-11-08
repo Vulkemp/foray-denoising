@@ -1,19 +1,16 @@
 #pragma once
 #include <stages/foray_raytracingstage.hpp>
 
-class CustomRtStage : public foray::stages::RaytracingStage
+class CustomRtStage : public foray::stages::ExtRaytracingStage
 {
 public:
-    virtual void Init(foray::core::Context *context, foray::scene::Scene *scene, foray::core::CombinedImageSampler *envmap, foray::core::CombinedImageSampler *noiseSource);
-    virtual void CreateRaytraycingPipeline() override;
-    virtual void OnShadersRecompiled() override;
+    virtual void CreateRtPipeline() override;
 
-    virtual void Destroy() override;
-    virtual void DestroyShaders() override;
+    virtual void DestroyRtPipeline() override;
 
     struct RtStageShader
     {
-        std::string Path = "";
+        foray::osi::Utf8Path Path = "";
         foray::core::ShaderModule Module;
 
         void Create(foray::core::Context *context);
