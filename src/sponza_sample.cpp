@@ -242,6 +242,11 @@ void ImportanceSamplingRtProject::PrepareImguiWindow()
             ImGui::EndCombo();
         }
 
+        if (ImGui::CollapsingHeader("Denoiser Config"))
+        {
+            this->mDenoiser.DisplayImguiConfiguration();
+        }
+
 #ifdef ENABLE_GBUFFER_BENCH
         if(mDisplayedLog.Timestamps.size() > 0 && ImGui::CollapsingHeader("GBuffer Benchmark"))
         {
