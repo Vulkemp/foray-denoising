@@ -10,6 +10,7 @@ void ImportanceSamplingRtProject::ApiBeforeInit()
 {
     mAuxiliaryCommandBufferCount = 0;
     mWindowSwapchain.GetWindow().DisplayMode(foray::osi::EDisplayMode::WindowedResizable);
+    mInstance.SetEnableDebugReport(false);
 }
 
 VkBool32 myDebugCallback(VkDebugReportFlagsEXT      flags,
