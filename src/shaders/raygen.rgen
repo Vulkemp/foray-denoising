@@ -5,50 +5,46 @@
 
 // Include structs and bindings
 
-#include "../../foray/src/shaders/rt_common/bindpoints.glsl"
-#include "../../foray/src/shaders/common/camera.glsl"
-#include "../../foray/src/shaders/rt_common/tlas.glsl"
-#include "../../foray/src/shaders/rt_common/imageoutput.glsl"
-#include "../../foray/src/shaders/common/lcrng.glsl"
-#include "../../foray/src/shaders/common/noisetex.glsl"
-#include "../../foray/src/shaders/rt_common/tracerconfig.glsl"
-
-// Declare hitpayloads
+#include "../../foray/src/shaders/rt_common/bindpoints.glsl" // Defines constants for the bind indices that RaytracingStage uses
+#include "../../foray/src/shaders/common/camera.glsl" // Binds camera matrices UBO
+#include "../../foray/src/shaders/rt_common/tlas.glsl" // Binds Top Level Acceleration Structure
+#include "../../foray/src/shaders/rt_common/imageoutput.glsl" // Binds the output storage image
+#include "../../foray/src/shaders/rt_common/tracerconfig.glsl" // Binds the output storage image
+#include "../../foray/src/shaders/common/xteanoise.glsl"
 
 #define HITPAYLOAD_OUT
-#include "../../foray/src/shaders/rt_common/payload.glsl"
+#include "../../foray/src/shaders/rt_common/payload.glsl" // Bind the payload struct outgoing
+#include "../../foray/src/shaders/shading/constants.glsl"
 
 void main() 
 {
-	const vec2 pixelCenter = vec2(gl_LaunchIDEXT.xy) + vec2(0.5);
-	const vec2 inUV = pixelCenter/vec2(gl_LaunchSizeEXT.xy);
-	vec2 d = inUV * 2.0 - 1.0;
+	// We calculate the ray vector using the current pixels UV coords and the inverse view and projection matrices
+	const vec2 pixelCenter = vec2(gl_LaunchIDEXT.xy) + vec2(0.5); // offset from the corner of the pixel to the center
+	const vec2 inUV = pixelCenter/vec2(gl_LaunchSizeEXT.xy); // UV coordinate of the current pixel in the framebuffer texture
+	vec2 d = inUV * 2.0 - 1.0; // Correct for depth information
 
-	vec4 origin = Camera.InverseViewMatrix * vec4(0,0,0,1);
-	vec4 target = Camera.InverseProjectionMatrix * vec4(d.x, d.y, 1, 1) ;
-	vec4 direction = Camera.InverseViewMatrix*vec4(normalize(target.xyz), 0) ;
+	vec4 origin = Camera.InverseViewMatrix * vec4(0,0,0,1); // Ray origin in world space
+	vec4 direction = Camera.InverseViewMatrix * Camera.InverseProjectionMatrix * vec4(d.x, d.y, 1, 1); // Target direction in world space
 
-	float tmin = 0.001;
-	float tmax = 10000.0;
+	ChildPayload = ConstructHitPayload();
+	ChildPayload.Seed = CalculateSeedXTEA(ivec2(gl_LaunchIDEXT.xy), TracerConfig.RngSeed);
 
-    ChildPayload = ConstructHitPayload();
+	// Trace the ray
+	//    The hitpayload (see payload.glsl) is both the input variable and return value of the hit / miss shaders
 
-	ivec2 texSize = imageSize(NoiseSource);
+    traceRayEXT(MainTlas, // Top Level Acceleration Structure
+		0, // RayFlags (Possible use: skip AnyHit, ClosestHit shaders etc.)
+		0xff, // Culling Mask (Possible use: Skip intersection which don't have a specific bit set)
+		0, // SBT record offset
+		0, // SBT record stride
+		0, // Miss Index
+		origin.xyz, // Ray origin in world space
+		0.001, // Minimum ray travel distance
+		direction.xyz, // Ray direction in world space
+		INFINITY, // Maximum ray travel distance
+		0 // Payload index (outgoing payload bound to location 0 in payload.glsl)
+	);
 
-	ivec2 texel = ivec2(gl_LaunchIDEXT.x % texSize.x, gl_LaunchIDEXT.y % texSize.y);
-
-	uint left = TracerConfig.RngSeed + gl_LaunchIDEXT.y * gl_LaunchSizeEXT.x + gl_LaunchIDEXT.x;
-	uint right = imageLoad(NoiseSource, texel).x;
-	for (int i = 0; i < 4; i++)
-	{
-		uint temp = left & 0xFFFF | (right << 16);
-		temp = lcgUint(temp) * lcgUint(temp);
-		right += left;
-		left += temp;
-	}
-	ChildPayload.Seed = left + right;
-
-    traceRayEXT(MainTlas, 0, 0xff, 0, 0, 0, origin.xyz, tmin, direction.xyz, tmax, 0);
-
+	// Store the pixel
 	imageStore(ImageOutput, ivec2(gl_LaunchIDEXT.xy), vec4(ChildPayload.Radiance, 1.0));
 }

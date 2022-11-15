@@ -53,7 +53,6 @@ void ImportanceSamplingRtProject::ApiInit()
 #endif
     foray::logger()->set_level(spdlog::level::debug);
     LoadEnvironmentMap();
-    GenerateNoiseSource();
     loadScene();
     ConfigureStages();
 }
@@ -116,7 +115,7 @@ void ImportanceSamplingRtProject::ApiOnEvent(const foray::osi::Event* event)
 void ImportanceSamplingRtProject::loadScene()
 {
     std::vector<std::string> scenePaths({
-        DATA_DIR "/gltf/testbox/testbox.gltf"
+        DATA_DIR "/gltf/testbox/scene.gltf"
     });
 
     mScene = std::make_unique<foray::scene::Scene>(&mContext);
@@ -128,6 +127,7 @@ void ImportanceSamplingRtProject::loadScene()
 
     mScene->UpdateTlasManager();
     mScene->UseDefaultCamera();
+    mScene->UpdateLightManager();
 
     for(int32_t i = 0; i < scenePaths.size(); i++)
     {
@@ -181,18 +181,8 @@ void ImportanceSamplingRtProject::LoadEnvironmentMap()
     mEnvMapSampled.Init(&mContext, &mEnvMap, samplerCi);
 }
 
-void ImportanceSamplingRtProject::GenerateNoiseSource()
-{
-    foray::bench::HostBenchmark bench;
-    bench.Begin();
-    mNoiseSource.Create(&mContext);
-    bench.End();
-    foray::logger()->info("Create Noise Tex \n{}", bench.GetLogs().front().PrintPretty());
-}
-
 void ImportanceSamplingRtProject::ApiDestroy()
 {
-    mNoiseSource.Destroy();
     mScene->Destroy();
     mScene = nullptr;
     mDenoiser.Destroy();
@@ -265,7 +255,7 @@ void ImportanceSamplingRtProject::ConfigureStages()
     auto normalImage = mGbufferStage.GetImageOutput(foray::stages::GBufferStage::NormalOutputName);
     auto motionImage = mGbufferStage.GetImageOutput(foray::stages::GBufferStage::MotionOutputName);
 
-    mRaytraycingStage.Init(&mContext, mScene.get(), &mEnvMapSampled, &mNoiseSource.GetImage());
+    mRaytraycingStage.Init(&mContext, mScene.get());
     auto rtImage = mRaytraycingStage.GetImageOutput(foray::stages::ExtRaytracingStage::OutputName);
 
     mDenoiseSemaphore.Create(&mContext);
@@ -279,7 +269,6 @@ void ImportanceSamplingRtProject::ConfigureStages()
     mDenoisedImage.Create(&mContext, ci);
 
     foray::stages::DenoiserConfig config(rtImage, &mDenoisedImage, &mGbufferStage);
-    config.AuxiliaryInputs[std::string(mNoiseSource.GetImage().GetName())] = &mNoiseSource.GetImage();
     config.Semaphore   = &mDenoiseSemaphore;
 
     mDenoiser.Init(&mContext, config);

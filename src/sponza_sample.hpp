@@ -19,7 +19,7 @@
 #include <stdint.h>
 #include <foray_asvgf.hpp>
 
-#include "customrtstage.hpp"
+#include "foray_complexrtstage.hpp"
 #ifdef ENABLE_OPTIX
 #include <foray_optix.hpp>
 #endif
@@ -53,7 +53,6 @@ class ImportanceSamplingRtProject : public foray::base::DefaultAppBase
 
     void loadScene();
     void LoadEnvironmentMap();
-    void GenerateNoiseSource();
 
     /// @brief generates a GBuffer (Albedo, Positions, Normal, Motion Vectors, Mesh Instance Id as output images)
     foray::stages::GBufferStage mGbufferStage;
@@ -62,12 +61,10 @@ class ImportanceSamplingRtProject : public foray::base::DefaultAppBase
     /// @brief Copies the intermediate rendertarget to the swapchain image
     foray::stages::ImageToSwapchainStage mImageToSwapchainStage;
     /// @brief Generates a raytraced image
-    CustomRtStage mRaytraycingStage;
+    complex_raytracer::ComplexRaytracingStage mRaytraycingStage;
 
     foray::core::ManagedImage mEnvMap{};
     foray::core::CombinedImageSampler mEnvMapSampled;
-
-    foray::util::NoiseSource mNoiseSource;
 
     VkPhysicalDeviceTimelineSemaphoreFeatures       mTimelineFeature{};
     foray::core::ManagedImage                       mDenoisedImage;
