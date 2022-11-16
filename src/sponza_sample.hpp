@@ -25,6 +25,7 @@
 #endif
 #include <stages/foray_denoiserstage.hpp>
 #include <util/foray_noisesource.hpp>
+#include <bench/foray_devicebenchmark.hpp>
 
 using namespace foray::api;
 
@@ -74,6 +75,9 @@ class ImportanceSamplingRtProject : public foray::base::DefaultAppBase
     foray::util::ExternalSemaphore mDenoiseSemaphore;
 
     foray::asvgf::ASvgfDenoiserStage mDenoiser;
+
+    foray::bench::DeviceBenchmark mDenoiserBenchmark;
+    foray::bench::BenchmarkLog mDenoiserBenchmarkLog;
 
     void ConfigureStages();
 

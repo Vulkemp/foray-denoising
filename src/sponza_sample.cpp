@@ -237,6 +237,11 @@ void ImportanceSamplingRtProject::PrepareImguiWindow()
             this->mDenoiser.DisplayImguiConfiguration();
         }
 
+        if (ImGui::CollapsingHeader("Denoiser Benchmark"))
+        {
+            this->mDenoiserBenchmarkLog.PrintImGui();
+        }
+
 #ifdef ENABLE_GBUFFER_BENCH
         if(mDisplayedLog.Timestamps.size() > 0 && ImGui::CollapsingHeader("GBuffer Benchmark"))
         {
@@ -269,6 +274,7 @@ void ImportanceSamplingRtProject::ConfigureStages()
     mDenoisedImage.Create(&mContext, ci);
 
     foray::stages::DenoiserConfig config(rtImage, &mDenoisedImage, &mGbufferStage);
+    config.Benchmark = &mDenoiserBenchmark;
     config.Semaphore   = &mDenoiseSemaphore;
 
     mDenoiser.Init(&mContext, config);
@@ -323,10 +329,11 @@ void ImportanceSamplingRtProject::ApiRender(foray::base::FrameRenderInfo& render
 
 void ImportanceSamplingRtProject::ApiFrameFinishedExecuting(uint64_t frameIndex)
 {
-#ifdef ENABLE_GBUFFER_BENCH
-    mGbufferStage.GetBenchmark().LogQueryResults(frameIndex);
-    mDisplayedLog = mGbufferStage.GetBenchmark().GetLogs().back();
-#endif  // ENABLE_GBUFFER_BENCH
+    if (mDenoiserBenchmark.LogQueryResults(frameIndex))
+    {
+        mDenoiserBenchmarkLog = mDenoiserBenchmark.GetLogs().back();
+        mDenoiserBenchmark.GetLogs().clear();
+    }
 }
 
 void ImportanceSamplingRtProject::ApiOnResized(VkExtent2D size)
