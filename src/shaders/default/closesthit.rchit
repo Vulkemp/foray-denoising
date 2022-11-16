@@ -96,7 +96,7 @@ vec3 CollectDirectLight(in vec3 pos, in vec3 normal, in MaterialBufferObject mat
                 hit.wIn = dir;
                 hit.wHalf = normalize(hit.wOut + hit.wIn);
 
-                vec3 reflection = (nDotL * ReturnPayload.Attenuation * light.Intensity * light.Color * EvaluateMaterial(hit, material, probe)) / (4 * PI); // Calculate light reflected
+                vec3 reflection = (ReturnPayload.Attenuation * light.Intensity * light.Color * EvaluateMaterial(hit, material, probe)) / (4 * PI); // Calculate light reflected
 
                 if (light.Type == SimplifiedLightType_Point)
                 {
