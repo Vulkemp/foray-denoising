@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <foray_asvgf.hpp>
 #include <foray_glm.hpp>
 #include <fstream>
 #include <iostream>
@@ -15,17 +16,16 @@
 #include <optional>
 #include <set>
 #include <stdexcept>
-#include <vector>
 #include <stdint.h>
-#include <foray_asvgf.hpp>
+#include <vector>
 
 #include "foray_complexrtstage.hpp"
 #ifdef ENABLE_OPTIX
 #include <foray_optix.hpp>
 #endif
+#include <bench/foray_devicebenchmark.hpp>
 #include <stages/foray_denoiserstage.hpp>
 #include <util/foray_noisesource.hpp>
-#include <bench/foray_devicebenchmark.hpp>
 
 using namespace foray::api;
 
@@ -36,7 +36,6 @@ class ImportanceSamplingRtProject : public foray::base::DefaultAppBase
     ~ImportanceSamplingRtProject() = default;
 
   protected:
-    virtual void ApiBeforeInstanceCreate(vkb::InstanceBuilder& builder) override;
     virtual void ApiBeforeDeviceSelection(vkb::PhysicalDeviceSelector& pds) override;
     virtual void ApiBeforeDeviceBuilding(vkb::DeviceBuilder& deviceBuilder) override;
     virtual void ApiBeforeInit() override;
@@ -64,20 +63,31 @@ class ImportanceSamplingRtProject : public foray::base::DefaultAppBase
     /// @brief Generates a raytraced image
     complex_raytracer::ComplexRaytracingStage mRaytraycingStage;
 
-    foray::core::ManagedImage mEnvMap{};
+    foray::core::ManagedImage         mEnvMap{};
     foray::core::CombinedImageSampler mEnvMapSampled;
 
-    VkPhysicalDeviceTimelineSemaphoreFeatures       mTimelineFeature{};
-    foray::core::ManagedImage                       mDenoisedImage;
-    #ifdef ENABLE_OPTIX
-    foray::optix::OptiXDenoiserStage                mDenoiser;
-    #endif
-    foray::util::ExternalSemaphore mDenoiseSemaphore;
+    VkPhysicalDeviceTimelineSemaphoreFeatures mTimelineFeature{};
+    foray::core::ManagedImage                 mDenoisedImage;
+    foray::util::ExternalSemaphore            mDenoiseSemaphore;
 
-    foray::asvgf::ASvgfDenoiserStage mDenoiser;
+    foray::asvgf::ASvgfDenoiserStage mASvgfDenoiser;
+#ifdef ENABLE_OPTIX
+    foray::optix::OptiXDenoiserStage mOptiXDenoiser;
+#endif
 
     foray::bench::DeviceBenchmark mDenoiserBenchmark;
-    foray::bench::BenchmarkLog mDenoiserBenchmarkLog;
+    foray::bench::BenchmarkLog    mDenoiserBenchmarkLog;
+
+    int32_t mActiveDenoiserIndex = 0;
+    std::vector<foray::stages::DenoiserStage*> mDenoisers = {
+        &mASvgfDenoiser,
+#ifdef ENABLE_OPTIX
+        &mOptiXDenoiser
+#endif
+        };
+    foray::stages::DenoiserStage* mActiveDenoiser         = nullptr;
+
+    void SetDenoiserActive();
 
     void ConfigureStages();
 

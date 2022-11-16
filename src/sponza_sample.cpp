@@ -4,66 +4,19 @@
 #include <imgui/imgui.h>
 #include <util/foray_imageloader.hpp>
 
-// #define USE_PRINTF
-
 void ImportanceSamplingRtProject::ApiBeforeInit()
 {
-    mAuxiliaryCommandBufferCount = 0;
+    mAuxiliaryCommandBufferCount = 1;
     mWindowSwapchain.GetWindow().DisplayMode(foray::osi::EDisplayMode::WindowedResizable);
     mInstance.SetEnableDebugReport(false);
 }
 
-VkBool32 myDebugCallback(VkDebugReportFlagsEXT      flags,
-                         VkDebugReportObjectTypeEXT objectType,
-                         uint64_t                   object,
-                         size_t                     location,
-                         int32_t                    messageCode,
-                         const char*                pLayerPrefix,
-                         const char*                pMessage,
-                         void*                      pUserData)
-{
-    if(flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
-    {
-        printf("debugPrintfEXT: %s", pMessage);
-    }
-
-    return false;
-}
-
 void ImportanceSamplingRtProject::ApiInit()
 {
-#ifdef USE_PRINTF
-    VkDebugReportCallbackEXT debugCallbackHandle;
-
-    // Populate the VkDebugReportCallbackCreateInfoEXT
-    VkDebugReportCallbackCreateInfoEXT ci = {};
-    ci.sType                              = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
-    ci.pfnCallback                        = myDebugCallback;
-    ci.flags                              = VK_DEBUG_REPORT_INFORMATION_BIT_EXT;
-    ci.pUserData                          = nullptr;
-
-    PFN_vkCreateDebugReportCallbackEXT pfn_vkCreateDebugReportCallbackEXT =
-        reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(vkGetDeviceProcAddr(mContext.Device(), "vkCreateDebugReportCallbackEXT"));
-
-    PFN_vkCreateDebugReportCallbackEXT CreateDebugReportCallback = VK_NULL_HANDLE;
-    CreateDebugReportCallback                                    = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(mContext.Instance(), "vkCreateDebugReportCallbackEXT");
-
-    // Create the callback handle
-    CreateDebugReportCallback(mContext.Instance(), &ci, nullptr, &debugCallbackHandle);
-#endif
     foray::logger()->set_level(spdlog::level::debug);
     LoadEnvironmentMap();
     loadScene();
     ConfigureStages();
-}
-
-void ImportanceSamplingRtProject::ApiBeforeInstanceCreate(vkb::InstanceBuilder& instanceBuilder)
-{
-#ifdef USE_PRINTF
-    instanceBuilder.add_validation_feature_enable(VK_VALIDATION_FEATURE_ENABLE_DEBUG_PRINTF_EXT);
-    instanceBuilder.enable_extension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-    instanceBuilder.enable_extension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
-#endif
 }
 
 void ImportanceSamplingRtProject::ApiBeforeDeviceSelection(vkb::PhysicalDeviceSelector& pds)
@@ -75,9 +28,6 @@ void ImportanceSamplingRtProject::ApiBeforeDeviceSelection(vkb::PhysicalDeviceSe
 #else
     pds.add_required_extension(VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME);
     pds.add_required_extension(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME);
-#endif
-#ifdef USE_PRINTF
-    pds.add_required_extension(VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME);
 #endif
 }
 
@@ -114,9 +64,7 @@ void ImportanceSamplingRtProject::ApiOnEvent(const foray::osi::Event* event)
 
 void ImportanceSamplingRtProject::loadScene()
 {
-    std::vector<std::string> scenePaths({
-        DATA_DIR "/gltf/testbox/scene.gltf"
-    });
+    std::vector<std::string> scenePaths({DATA_DIR "/gltf/testbox/scene.gltf"});
 
     mScene = std::make_unique<foray::scene::Scene>(&mContext);
     foray::gltf::ModelConverter converter(mScene.get());
@@ -155,13 +103,10 @@ void ImportanceSamplingRtProject::LoadEnvironmentMap()
         return;
     }
 
-    VkExtent2D ext2D{
-        .width  = imageLoader.GetInfo().Extent.width,
-        .height = imageLoader.GetInfo().Extent.height
-    };
+    VkExtent2D ext2D{.width = imageLoader.GetInfo().Extent.width, .height = imageLoader.GetInfo().Extent.height};
 
-    foray::core::ManagedImage::CreateInfo ci(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, hdrVkFormat,
-                                             ext2D, "Environment map");
+    foray::core::ManagedImage::CreateInfo ci(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, hdrVkFormat, ext2D,
+                                             "Environment map");
 
     imageLoader.InitManagedImage(&mContext, &mEnvMap, ci);
     imageLoader.Destroy();
@@ -185,14 +130,14 @@ void ImportanceSamplingRtProject::ApiDestroy()
 {
     mScene->Destroy();
     mScene = nullptr;
-    mDenoiser.Destroy();
+    mASvgfDenoiser.Destroy();
+#ifdef ENABLE_OPTIX
+    mOptiXDenoiser.Destroy();
+#endif
     mGbufferStage.Destroy();
     mImguiStage.Destroy();
     mRaytraycingStage.Destroy();
     mEnvMap.Destroy();
-    #ifdef ENABLE_OPTIX
-    mDenoiser.Destroy();
-    #endif
     mDenoiseSemaphore.Destroy();
     mDenoisedImage.Destroy();
 }
@@ -207,37 +152,55 @@ void ImportanceSamplingRtProject::PrepareImguiWindow()
         {
             ImGui::Text("FPS: %f avg %f min", 1.f / analysis.AvgFrameTime, 1.f / analysis.MaxFrameTime);
         }
-        std::string denoiserLabel = this->mDenoiser.GetUILabel();
-        ImGui::Text("%s", denoiserLabel.c_str());
 
-        const char* current = mCurrentOutput.data();
-        if(ImGui::BeginCombo("Output", current))
-        {
-            std::string_view newOutput = mCurrentOutput;
-            for(auto output : mOutputs)
+        {  // Output Switching
+            const char* current = mCurrentOutput.data();
+            if(ImGui::BeginCombo("Output", current))
             {
-                bool selected = output.first == mCurrentOutput;
-                if(ImGui::Selectable(output.first.data(), selected))
+                std::string_view newOutput = mCurrentOutput;
+                for(auto output : mOutputs)
                 {
-                    newOutput = output.first;
+                    bool selected = output.first == mCurrentOutput;
+                    if(ImGui::Selectable(output.first.data(), selected))
+                    {
+                        newOutput = output.first;
+                    }
                 }
-            }
 
-            if(newOutput != mCurrentOutput)
+                if(newOutput != mCurrentOutput)
+                {
+                    mCurrentOutput = newOutput;
+                    mOutputChanged = true;
+                }
+
+                ImGui::EndCombo();
+            }
+        }
+        {  // Denoiser Switching
+            std::string denoiserLabel = this->mActiveDenoiser->GetUILabel();
+            if(ImGui::BeginCombo("Denoiser", denoiserLabel.c_str()))
             {
-                mCurrentOutput = newOutput;
-                mOutputChanged = true;
+                
+                for(int32_t i = 0; i < this->mDenoisers.size(); i++)
+                {
+                    bool selected = this->mActiveDenoiserIndex == i;
+                    std::string name = this->mDenoisers[i]->GetUILabel();
+                    if(ImGui::Selectable(name.c_str(), selected))
+                    {
+                        this->mActiveDenoiserIndex = i;
+                    }
+                }
+
+                ImGui::EndCombo();
             }
-
-            ImGui::EndCombo();
         }
 
-        if (ImGui::CollapsingHeader("Denoiser Config"))
+        if(ImGui::CollapsingHeader("Denoiser Config"))
         {
-            this->mDenoiser.DisplayImguiConfiguration();
+            this->mActiveDenoiser->DisplayImguiConfiguration();
         }
 
-        if (ImGui::CollapsingHeader("Denoiser Benchmark"))
+        if(ImGui::CollapsingHeader("Denoiser Benchmark"))
         {
             this->mDenoiserBenchmarkLog.PrintImGui();
         }
@@ -269,17 +232,12 @@ void ImportanceSamplingRtProject::ConfigureStages()
 
     foray::core::ManagedImage::CreateInfo ci(VkImageUsageFlagBits::VK_IMAGE_USAGE_STORAGE_BIT | VkImageUsageFlagBits::VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
                                                  | VkImageUsageFlagBits::VK_IMAGE_USAGE_TRANSFER_DST_BIT | VkImageUsageFlagBits::VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-                                             VkFormat::VK_FORMAT_R32G32B32A32_SFLOAT, extent, "Denoised Image");
+                                             VkFormat::VK_FORMAT_R16G16B16A16_SFLOAT, extent, "Denoised Image");
 
     mDenoisedImage.Create(&mContext, ci);
-
-    foray::stages::DenoiserConfig config(rtImage, &mDenoisedImage, &mGbufferStage);
-    config.Benchmark = &mDenoiserBenchmark;
-    config.Semaphore   = &mDenoiseSemaphore;
-
-    mDenoiser.Init(&mContext, config);
-
     UpdateOutputs();
+
+    SetDenoiserActive();
 
     mImguiStage.Init(&mContext, mOutputs[mCurrentOutput]);
     PrepareImguiWindow();
@@ -289,9 +247,55 @@ void ImportanceSamplingRtProject::ConfigureStages()
 
     RegisterRenderStage(&mGbufferStage);
     RegisterRenderStage(&mRaytraycingStage);
-    RegisterRenderStage(&mDenoiser);
+    RegisterRenderStage(&mASvgfDenoiser);
+#ifdef ENABLE_OPTIX
+    RegisterRenderStage(&mOptiXDenoiser);
+#endif
     RegisterRenderStage(&mImguiStage);
     RegisterRenderStage(&mImageToSwapchainStage);
+}
+
+void ImportanceSamplingRtProject::SetDenoiserActive()
+{
+    if(mActiveDenoiser == mDenoisers[mActiveDenoiserIndex])
+    {
+        return;
+    }
+
+    vkDeviceWaitIdle(mDevice);
+
+    if(!!mActiveDenoiser)
+    {
+        mActiveDenoiser->Destroy();
+    }
+    mActiveDenoiser = mDenoisers[mActiveDenoiserIndex];
+    foray::stages::DenoiserConfig config(mRaytraycingStage.GetRtOutput(), &mDenoisedImage, &mGbufferStage);
+    config.Benchmark = &mDenoiserBenchmark;
+    config.Semaphore = &mDenoiseSemaphore;
+
+    mActiveDenoiser->Init(&mContext, config);
+
+    foray::stages::ExternalDenoiserStage* externalDenoiser = dynamic_cast<foray::stages::ExternalDenoiserStage*>(mActiveDenoiser);
+
+    {  // Setup semaphores
+        for(foray::base::InFlightFrame& frame : mInFlightFrames)
+        {
+            foray::core::DeviceCommandBuffer& auxCmdBuffer     = frame.GetAuxiliaryCommandBuffer(0);
+            foray::core::DeviceCommandBuffer& primaryCmdBuffer = frame.GetPrimaryCommandBuffer();
+            auxCmdBuffer.SetSignalSemaphores(std::vector<foray::core::SemaphoreReference>({foray::core::SemaphoreReference::Timeline(mDenoiseSemaphore, 0)}));
+            if(!!externalDenoiser)
+            {
+                primaryCmdBuffer.SetWaitSemaphores(std::vector<foray::core::SemaphoreReference>(
+                    {foray::core::SemaphoreReference::Binary(frame.GetSwapchainImageReady(), VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR),
+                     foray::core::SemaphoreReference::Timeline(mDenoiseSemaphore, 0)}));
+            }
+            else
+            {
+                primaryCmdBuffer.SetWaitSemaphores(std::vector<foray::core::SemaphoreReference>(
+                    {foray::core::SemaphoreReference::Binary(frame.GetSwapchainImageReady(), VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR)}));
+            }
+        }
+    }
 }
 
 void ImportanceSamplingRtProject::ApiRender(foray::base::FrameRenderInfo& renderInfo)
@@ -301,18 +305,44 @@ void ImportanceSamplingRtProject::ApiRender(foray::base::FrameRenderInfo& render
         ApplyOutput();
         mOutputChanged = false;
     }
+    SetDenoiserActive();
 
-    foray::core::DeviceCommandBuffer& primaryCmdBuffer = renderInfo.GetPrimaryCommandBuffer(); 
+    foray::stages::ExternalDenoiserStage* externalDenoiser = dynamic_cast<foray::stages::ExternalDenoiserStage*>(mActiveDenoiser);
+
+    foray::core::DeviceCommandBuffer& auxCmdBuffer     = renderInfo.GetAuxCommandBuffer(0);
+    foray::core::DeviceCommandBuffer& primaryCmdBuffer = renderInfo.GetPrimaryCommandBuffer();
+
+    foray::core::DeviceCommandBuffer* cmdBuffer                 = &primaryCmdBuffer;
+    uint64_t                          timelineValueSignal       = renderInfo.GetFrameNumber() * 2 + 1;
+    uint64_t                          timelineValueWaitExternal = renderInfo.GetFrameNumber() * 2 + 2;
+    if(!!externalDenoiser)
+    {
+        auxCmdBuffer.GetSignalSemaphores().back().TimelineValue   = timelineValueSignal;
+        primaryCmdBuffer.GetWaitSemaphores().back().TimelineValue = timelineValueWaitExternal;
+        cmdBuffer                                                 = &auxCmdBuffer;
+    }
+
 
     // Begin aux command buffer
-    primaryCmdBuffer.Begin();
+    cmdBuffer->Begin();
 
-    mScene->Update(renderInfo, primaryCmdBuffer);
-    mGbufferStage.RecordFrame(primaryCmdBuffer, renderInfo);
+    mScene->Update(renderInfo, *cmdBuffer);
+    mGbufferStage.RecordFrame(*cmdBuffer, renderInfo);
 
-    mRaytraycingStage.RecordFrame(primaryCmdBuffer, renderInfo);
+    mRaytraycingStage.RecordFrame(*cmdBuffer, renderInfo);
 
-    mDenoiser.RecordFrame(primaryCmdBuffer, renderInfo);
+    if(!!externalDenoiser)
+    {
+        externalDenoiser->BeforeDenoise(*cmdBuffer, renderInfo);
+        cmdBuffer->Submit();
+        externalDenoiser->DispatchDenoise(timelineValueSignal, timelineValueWaitExternal);
+        primaryCmdBuffer.Begin();
+        externalDenoiser->AfterDenoise(primaryCmdBuffer, renderInfo);
+    }
+    else
+    {
+        mActiveDenoiser->RecordFrame(primaryCmdBuffer, renderInfo);
+    }
 
     // draw imgui windows
     mImguiStage.RecordFrame(primaryCmdBuffer, renderInfo);
@@ -329,7 +359,7 @@ void ImportanceSamplingRtProject::ApiRender(foray::base::FrameRenderInfo& render
 
 void ImportanceSamplingRtProject::ApiFrameFinishedExecuting(uint64_t frameIndex)
 {
-    if (mDenoiserBenchmark.LogQueryResults(frameIndex))
+    if(mDenoiserBenchmark.Exists() && mDenoiserBenchmark.LogQueryResults(frameIndex))
     {
         mDenoiserBenchmarkLog = mDenoiserBenchmark.GetLogs().back();
         mDenoiserBenchmark.GetLogs().clear();
@@ -340,7 +370,7 @@ void ImportanceSamplingRtProject::ApiOnResized(VkExtent2D size)
 {
     mScene->InvokeOnResized(size);
 
-    mDenoisedImage.Resize(VkExtent3D{size.width, size.height, 1});
+    mDenoisedImage.Resize(size);
 }
 
 void lUpdateOutput(std::map<std::string_view, foray::core::ManagedImage*>& map, foray::stages::RenderStage& stage, const std::string_view name)
