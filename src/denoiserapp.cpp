@@ -149,6 +149,7 @@ namespace denoise {
     void DenoiserApp::ApiRender(foray::base::FrameRenderInfo& renderInfo)
     {
         ActivateOrSwitchDenoiser();
+        ActivateOrSwitchOutput();
 
         foray::stages::ExternalDenoiserStage* externalDenoiser = dynamic_cast<foray::stages::ExternalDenoiserStage*>(mActiveDenoiser);
 
