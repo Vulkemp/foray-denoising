@@ -4,13 +4,12 @@
 #include <util/foray_noisesource.hpp>
 #include <scene/globalcomponents/foray_lightmanager.hpp>
 
-namespace complex_raytracer {
+namespace denoise {
 
-    inline const std::string RAYGEN_FILE     = "shaders/raygen.rgen";
-    inline const std::string CLOSESTHIT_FILE = "shaders/default/closesthit.rchit";
-    inline const std::string MISS_FILE       = "shaders/default/miss.rmiss";
-    inline const std::string VISI_MISS_FILE       = "shaders/visibilitytest/miss.rmiss";
-    inline const std::string SCENE_FILE      = DATA_DIR "/gltf/testbox/scene.gltf";
+    inline const std::string RAYGEN_FILE     = APP_SHADER_DIR "/raygen.rgen";
+    inline const std::string CLOSESTHIT_FILE = APP_SHADER_DIR "/default/closesthit.rchit";
+    inline const std::string MISS_FILE       = APP_SHADER_DIR "/default/miss.rmiss";
+    inline const std::string VISI_MISS_FILE  = APP_SHADER_DIR "/visibilitytest/miss.rmiss";
 
     class ComplexRaytracingStage : public foray::stages::ExtRaytracingStage
     {
@@ -31,4 +30,4 @@ namespace complex_raytracer {
         foray::scene::gcomp::LightManager* mLightManager;
     };
 
-}  // namespace complex_raytracer
+}  // namespace denoise

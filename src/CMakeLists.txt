@@ -24,6 +24,7 @@ add_executable(${PROJECT_NAME} ${src})
 # Assign Compile Flags
 target_compile_options(${PROJECT_NAME} PUBLIC "-DCWD_OVERRIDE=\"${CMAKE_CURRENT_LIST_DIR}\"")
 target_compile_options(${PROJECT_NAME} PUBLIC "-DDATA_DIR=\"${CMAKE_SOURCE_DIR}/data\"")
+target_compile_options(${PROJECT_NAME} PUBLIC "-DAPP_SHADER_DIR=\"${CMAKE_CURRENT_LIST_DIR}/shaders\"")
 
 # Link foray lib
 target_link_libraries(

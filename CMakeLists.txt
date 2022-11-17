@@ -10,6 +10,7 @@ set(SDL2_HINT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/foray/third_party")
 include("foray/cmakescripts/locatesdl2.cmake")
 
 option(ENABLE_OPTIX "If set, enables OptiX (requires Cuda and OptiX include)" OFF)
+option(SHADER_PRINTF "If set, enables debug report for displaying shader printf debug messages. May cause NSight to crash or malfunction." OFF)
 
 # Add subdirectories
 add_subdirectory("foray")

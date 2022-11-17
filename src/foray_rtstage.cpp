@@ -1,8 +1,8 @@
-#include "foray_complexrtstage.hpp"
+#include "foray_rtstage.hpp"
 #include <gltf/foray_modelconverter.hpp>
 #include <scene/globalcomponents/foray_lightmanager.hpp>
 
-namespace complex_raytracer {
+namespace denoise {
     void ComplexRaytracingStage::Init(foray::core::Context* context, foray::scene::Scene* scene)
     {
         mLightManager = scene->GetComponent<foray::scene::gcomp::LightManager>();
@@ -98,4 +98,4 @@ namespace complex_raytracer {
     //     mSwapCopyStage.Destroy();
     //     mScene = nullptr;
     // }
-}  // namespace complex_raytracer
+}  // namespace denoise

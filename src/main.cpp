@@ -1,9 +1,9 @@
-#include "sponza_sample.hpp"
+#include "denoiserapp.hpp"
 #include <osi/foray_env.hpp>
 
 int main(int argv, char** args)
 {
     foray::osi::OverrideCurrentWorkingDirectory(CWD_OVERRIDE);
-    ImportanceSamplingRtProject project;
+    denoise::DenoiserApp project;
     return project.Run();
 }
