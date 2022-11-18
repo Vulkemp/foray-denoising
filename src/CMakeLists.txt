@@ -46,7 +46,7 @@ target_include_directories(
 	${PROJECT_NAME}
 	PUBLIC "${CMAKE_SOURCE_DIR}/foray/src"
 	PUBLIC "${CMAKE_SOURCE_DIR}/foray/third_party"
-	PUBLIC "${CMAKE_SOURCE_DIR}/denoisers/foray-denoiser-svgf/src"
+	PUBLIC "${CMAKE_SOURCE_DIR}/denoisers/foray-denoiser-asvgf/src"
 	PUBLIC ${Vulkan_INCLUDE_DIR}
 )
 
