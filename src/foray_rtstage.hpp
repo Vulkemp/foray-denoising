@@ -8,6 +8,7 @@ namespace denoise {
 
     inline const std::string RAYGEN_FILE     = APP_SHADER_DIR "/raygen.rgen";
     inline const std::string CLOSESTHIT_FILE = APP_SHADER_DIR "/default/closesthit.rchit";
+    inline const std::string ANYHIT_FILE = APP_SHADER_DIR "/default/anyhit.rahit";
     inline const std::string MISS_FILE       = APP_SHADER_DIR "/default/miss.rmiss";
     inline const std::string VISI_MISS_FILE  = APP_SHADER_DIR "/visibilitytest/miss.rmiss";
 
@@ -24,6 +25,7 @@ namespace denoise {
 
         foray::core::ShaderModule mRaygen;
         foray::core::ShaderModule mClosestHit;
+        foray::core::ShaderModule mAnyHit;
         foray::core::ShaderModule mMiss;
         foray::core::ShaderModule mVisiMiss;
 
