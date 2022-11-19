@@ -4,3 +4,4 @@ if (ENABLE_OPTIX)
 endif()
 
 add_subdirectory("foray-denoiser-asvgf")
+add_subdirectory("foray-denoiser-bmfr")

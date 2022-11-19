@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <foray_asvgf.hpp>
+#include <foray_bmfr.hpp>
 #include <foray_glm.hpp>
 #include <fstream>
 #include <iostream>
@@ -42,15 +43,15 @@ namespace denoise {
         virtual void ApiBeforeDeviceSelection(vkb::PhysicalDeviceSelector& pds) override;
         virtual void ApiBeforeDeviceBuilding(vkb::DeviceBuilder& deviceBuilder) override;
         virtual void ApiInit() override;
-        void LoadEnvironmentMap();
-        void LoadScene();
-        void ConfigureStages();
+        void         LoadEnvironmentMap();
+        void         LoadScene();
+        void         ConfigureStages();
 
         virtual void ApiRender(foray::base::FrameRenderInfo& renderInfo) override;
         virtual void ApiFrameFinishedExecuting(uint64_t frameIndex) override;
         virtual void ApiOnResized(VkExtent2D size) override;
         virtual void ApiOnEvent(const foray::osi::Event* event) override;
-        void ImGui();
+        void         ImGui();
 
         virtual void ApiDestroy() override;
 
@@ -74,6 +75,7 @@ namespace denoise {
         foray::core::ManagedImage                 mDenoisedImage;
         foray::util::ExternalSemaphore            mDenoiseSemaphore;
 
+        foray::bmfr::BmfrDenoiser        mBmfrDenoiser;
         foray::asvgf::ASvgfDenoiserStage mASvgfDenoiser;
 #ifdef ENABLE_OPTIX
         foray::optix::OptiXDenoiserStage mOptiXDenoiser;
@@ -83,7 +85,7 @@ namespace denoise {
         foray::bench::BenchmarkLog    mDenoiserBenchmarkLog;
 
         int32_t                                    mActiveDenoiserIndex = 0;
-        std::vector<foray::stages::DenoiserStage*> mDenoisers           = {&mASvgfDenoiser,
+        std::vector<foray::stages::DenoiserStage*> mDenoisers           = {&mBmfrDenoiser, &mASvgfDenoiser,
 #ifdef ENABLE_OPTIX
                                                                  &mOptiXDenoiser
 #endif

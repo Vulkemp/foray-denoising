@@ -292,6 +292,7 @@ namespace denoise {
         mScene->Destroy();
         mScene = nullptr;
         mASvgfDenoiser.Destroy();
+        mBmfrDenoiser.Destroy();
 #ifdef ENABLE_OPTIX
         mOptiXDenoiser.Destroy();
 #endif
