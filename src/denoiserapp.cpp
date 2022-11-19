@@ -135,6 +135,7 @@ namespace denoise {
 
         RegisterRenderStage(&mGbufferStage);
         RegisterRenderStage(&mRaytraycingStage);
+        RegisterRenderStage(&mBmfrDenoiser);
         RegisterRenderStage(&mASvgfDenoiser);
 #ifdef ENABLE_OPTIX
         RegisterRenderStage(&mOptiXDenoiser);
