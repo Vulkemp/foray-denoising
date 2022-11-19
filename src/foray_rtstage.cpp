@@ -13,13 +13,14 @@ namespace denoise {
     {
         mRaygen.LoadFromSource(mContext, RAYGEN_FILE);
         mClosestHit.LoadFromSource(mContext, CLOSESTHIT_FILE);
+        mAnyHit.LoadFromSource(mContext, ANYHIT_FILE);
         mMiss.LoadFromSource(mContext, MISS_FILE);
         mVisiMiss.LoadFromSource(mContext, VISI_MISS_FILE);
 
-        mShaderSourcePaths.insert(mShaderSourcePaths.begin(), {RAYGEN_FILE, CLOSESTHIT_FILE, MISS_FILE, VISI_MISS_FILE});
+        mShaderSourcePaths.insert(mShaderSourcePaths.begin(), {RAYGEN_FILE, CLOSESTHIT_FILE, ANYHIT_FILE, MISS_FILE, VISI_MISS_FILE});
 
         mPipeline.GetRaygenSbt().SetGroup(0, &mRaygen);
-        mPipeline.GetHitSbt().SetGroup(0, &mClosestHit, nullptr, nullptr);
+        mPipeline.GetHitSbt().SetGroup(0, &mClosestHit, &mAnyHit, nullptr);
         mPipeline.GetMissSbt().SetGroup(0, &mMiss);
         mPipeline.GetMissSbt().SetGroup(1, &mVisiMiss);
         mPipeline.Build(mContext, mPipelineLayout);
@@ -30,6 +31,7 @@ namespace denoise {
         mPipeline.Destroy();
         mRaygen.Destroy();
         mClosestHit.Destroy();
+        mAnyHit.Destroy();
         mMiss.Destroy();
         mVisiMiss.Destroy();
     }

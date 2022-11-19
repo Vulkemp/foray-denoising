@@ -247,5 +247,5 @@ void main()
     {
         indirectLight = CollectIndirectLight(posWorldSpace, normalWorldSpace, material, probe);
     }
-    ReturnPayload.Radiance = directLight + indirectLight;
+    ReturnPayload.Radiance = directLight + indirectLight + probe.EmissiveColor;
 }
