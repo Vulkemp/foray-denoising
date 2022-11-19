@@ -7,3 +7,6 @@
 [submodule "denoisers/foray-denoiser-asvgf"]
 	path = denoisers/foray-denoiser-asvgf
 	url = https://github.com/Vulkemp/foray-denoiser-asvgf
+[submodule "denoisers/foray-denoiser-bmfr"]
+	path = denoisers/foray-denoiser-bmfr
+	url = https://github.com/Vulkemp/foray-denoiser-bmfr
