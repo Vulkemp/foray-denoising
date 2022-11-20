@@ -128,10 +128,10 @@ namespace denoise {
         mOutputs      = {&mDenoisedImage, mRaytraycingStage.GetRtOutput()};
         mActiveOutput = mOutputs[mActiveOutputIndex];
 
-        mImguiStage.Init(&mContext, mActiveOutput);
-        mImguiStage.AddWindowDraw([this]() { this->ImGui(); });
-
         mImageToSwapchainStage.Init(&mContext, mActiveOutput);
+
+        mImguiStage.InitForSwapchain(&mContext);
+        mImguiStage.AddWindowDraw([this]() { this->ImGui(); });
 
         RegisterRenderStage(&mGbufferStage);
         RegisterRenderStage(&mRaytraycingStage);
@@ -189,13 +189,11 @@ namespace denoise {
             mActiveDenoiser->RecordFrame(primaryCmdBuffer, renderInfo);
         }
 
-        // draw imgui windows
-        mImguiStage.RecordFrame(primaryCmdBuffer, renderInfo);
-
-        renderInfo.ClearSwapchainImage(primaryCmdBuffer);
-
         // copy final image to swapchain
         mImageToSwapchainStage.RecordFrame(primaryCmdBuffer, renderInfo);
+
+        // draw imgui windows
+        mImguiStage.RecordFrame(primaryCmdBuffer, renderInfo);
 
         renderInfo.PrepareSwapchainImageForPresent(primaryCmdBuffer);
 
