@@ -53,11 +53,12 @@ namespace denoise {
         foray::gltf::ModelConverter converter(mScene.get());
         for(const auto& path : scenePaths)
         {
-            converter.LoadGltfModel(path);
+            foray::gltf::ModelConverterOptions options{.FlipY = false};
+            converter.LoadGltfModel(path, nullptr, options);
         }
 
         mScene->UpdateTlasManager();
-        mScene->UseDefaultCamera();
+        mScene->UseDefaultCamera(true);
         mScene->UpdateLightManager();
 
         for(int32_t i = 0; i < scenePaths.size(); i++)
@@ -129,6 +130,7 @@ namespace denoise {
         mActiveOutput = mOutputs[mActiveOutputIndex];
 
         mImageToSwapchainStage.Init(&mContext, mActiveOutput);
+        mImageToSwapchainStage.SetFlipX(true).SetFlipY(true);
 
         mImguiStage.InitForSwapchain(&mContext);
         mImguiStage.AddWindowDraw([this]() { this->ImGui(); });
@@ -362,7 +364,6 @@ namespace denoise {
         }
         vkDeviceWaitIdle(mDevice);
         mActiveOutput = mOutputs[mActiveOutputIndex];
-        mImguiStage.SetBackgroundImage(mActiveOutput);
         mImageToSwapchainStage.SetSrcImage(mActiveOutput);
     }
 
