@@ -11,6 +11,7 @@ namespace denoise {
     inline const std::string ANYHIT_FILE = APP_SHADER_DIR "/default/anyhit.rahit";
     inline const std::string MISS_FILE       = APP_SHADER_DIR "/default/miss.rmiss";
     inline const std::string VISI_MISS_FILE  = APP_SHADER_DIR "/visibilitytest/miss.rmiss";
+    inline const std::string VISI_ANYHIT_FILE  = APP_SHADER_DIR "/visibilitytest/anyhit.rahit";
 
     class ComplexRaytracingStage : public foray::stages::ExtRaytracingStage
     {
@@ -28,6 +29,7 @@ namespace denoise {
         foray::core::ShaderModule mAnyHit;
         foray::core::ShaderModule mMiss;
         foray::core::ShaderModule mVisiMiss;
+        foray::core::ShaderModule mVisiAnyHit;
 
         foray::scene::gcomp::LightManager* mLightManager;
     };

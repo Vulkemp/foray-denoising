@@ -16,11 +16,13 @@ namespace denoise {
         mAnyHit.LoadFromSource(mContext, ANYHIT_FILE);
         mMiss.LoadFromSource(mContext, MISS_FILE);
         mVisiMiss.LoadFromSource(mContext, VISI_MISS_FILE);
+        mVisiAnyHit.LoadFromSource(mContext, VISI_ANYHIT_FILE);
 
-        mShaderSourcePaths.insert(mShaderSourcePaths.begin(), {RAYGEN_FILE, CLOSESTHIT_FILE, ANYHIT_FILE, MISS_FILE, VISI_MISS_FILE});
+        mShaderSourcePaths.insert(mShaderSourcePaths.begin(), {RAYGEN_FILE, CLOSESTHIT_FILE, ANYHIT_FILE, MISS_FILE, VISI_MISS_FILE, VISI_ANYHIT_FILE, VISI_CLOSESTHIT_FILE});
 
         mPipeline.GetRaygenSbt().SetGroup(0, &mRaygen);
         mPipeline.GetHitSbt().SetGroup(0, &mClosestHit, &mAnyHit, nullptr);
+        mPipeline.GetHitSbt().SetGroup(1, nullptr, &mVisiAnyHit, nullptr);
         mPipeline.GetMissSbt().SetGroup(0, &mMiss);
         mPipeline.GetMissSbt().SetGroup(1, &mVisiMiss);
         mPipeline.Build(mContext, mPipelineLayout);
@@ -34,6 +36,7 @@ namespace denoise {
         mAnyHit.Destroy();
         mMiss.Destroy();
         mVisiMiss.Destroy();
+        mVisiAnyHit.Destroy();
     }
 
     void ComplexRaytracingStage::CreateOrUpdateDescriptors()
