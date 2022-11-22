@@ -48,7 +48,9 @@ namespace denoise {
     void DenoiserApp::LoadScene()
     {
         std::vector<std::string> scenePaths({
-            DATA_DIR "/intel-sponza/Main.1_Sponza/NewSponza_Main_glTF_002.gltf",
+            // SCENE_PATH,
+            DATA_DIR "/gltf/outdoorbox/scene.gltf",
+            // DATA_DIR "/intel-sponza/Main.1_Sponza/NewSponza_Main_glTF_002.gltf",
             DATA_DIR "/gltf/lightandcam/lightAndCamera.gltf",
             // DATA_DIR "/intel-sponza/PKG_D.1_10k_Candles/NewSponza_4_Combined_glTF.gltf"
         });
@@ -62,7 +64,7 @@ namespace denoise {
         }
 
         mScene->UpdateTlasManager();
-        mScene->UseDefaultCamera(true);
+        // mScene->UseDefaultCamera(true);
         mScene->UpdateLightManager();
 
         for(int32_t i = 0; i < scenePaths.size(); i++)
