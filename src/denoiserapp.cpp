@@ -2,6 +2,7 @@
 #include <bench/foray_hostbenchmark.hpp>
 #include <gltf/foray_modelconverter.hpp>
 #include <imgui/imgui.h>
+#include <scene/globalcomponents/foray_cameramanager.hpp>
 #include <util/foray_imageloader.hpp>
 
 namespace denoise {
@@ -286,6 +287,44 @@ namespace denoise {
         if(ImGui::CollapsingHeader("Denoiser Benchmark"))
         {
             this->mDenoiserBenchmarkLog.PrintImGui();
+        }
+
+        {
+            foray::scene::gcomp::CameraManager* camManager = mScene->GetComponent<foray::scene::gcomp::CameraManager>();
+
+            if(!!camManager)
+            {
+                std::vector<foray::scene::ncomp::Camera*> cameras;
+                camManager->GetCameras(cameras);
+                if(cameras.size() > 0)
+                {
+                    uint idx = 0;
+                    for (auto camera : cameras)
+                    {
+                        if (camera == camManager->GetSelectedCamera())
+                        {
+                            break;
+                        }
+                        idx++;
+                    }
+                    std::string denoiserLabel = fmt::format("Camera #{}", idx);
+                    if(ImGui::BeginCombo("Camera", denoiserLabel.c_str()))
+                    {
+
+                        for(int32_t i = 0; i < cameras.size(); i++)
+                        {
+                            bool        selected = idx == i;
+                            std::string name     = fmt::format("Camera #{}", i);
+                            if(ImGui::Selectable(name.c_str(), selected))
+                            {
+                                camManager->SelectCamera(cameras[i]);
+                            }
+                        }
+
+                        ImGui::EndCombo();
+                    }
+                }
+            }
         }
 
         ImGui::End();
