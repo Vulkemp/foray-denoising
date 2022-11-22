@@ -57,7 +57,7 @@ vec3 CollectDirectLight(in vec3 pos, in vec3 normal, in MaterialBufferObject mat
         float len = 0;
         if (light.Type == SimplifiedLightType_Directional)
         {
-            dir = normalize(-light.PosOrDir);
+            dir = normalize(light.PosOrDir);
             len = INFINITY;
         }
         else

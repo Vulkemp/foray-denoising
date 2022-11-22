@@ -47,7 +47,11 @@ namespace denoise {
 
     void DenoiserApp::LoadScene()
     {
-        std::vector<std::string> scenePaths({SCENE_PATH});
+        std::vector<std::string> scenePaths({
+            DATA_DIR "/intel-sponza/Main.1_Sponza/NewSponza_Main_glTF_002.gltf",
+            DATA_DIR "/gltf/lightandcam/lightAndCamera.gltf",
+            // DATA_DIR "/intel-sponza/PKG_D.1_10k_Candles/NewSponza_4_Combined_glTF.gltf"
+        });
 
         mScene = std::make_unique<foray::scene::Scene>(&mContext);
         foray::gltf::ModelConverter converter(mScene.get());
@@ -130,7 +134,7 @@ namespace denoise {
         mActiveOutput = mOutputs[mActiveOutputIndex];
 
         mImageToSwapchainStage.Init(&mContext, mActiveOutput);
-        mImageToSwapchainStage.SetFlipX(true).SetFlipY(true);
+        mImageToSwapchainStage.SetFlipY(true);
 
         mImguiStage.InitForSwapchain(&mContext);
         mImguiStage.AddWindowDraw([this]() { this->ImGui(); });
