@@ -59,10 +59,10 @@
             "camera" : 0,
             "name" : "Camera",
             "rotation" : [
-                -0.20997299253940582,
-                0.3857799768447876,
-                0.09062844514846802,
-                0.8937962055206299
+                -0.11460067331790924,
+                0.3931832015514374,
+                0.04946388676762581,
+                0.9109483957290649
             ],
             "translation" : [
                 10.248891830444336,
@@ -163,9 +163,9 @@
         {
             "bufferView" : 0,
             "componentType" : 5126,
-            "count" : 120,
+            "count" : 240,
             "max" : [
-                2
+                4
             ],
             "min" : [
                 0.016666666666666666
@@ -175,69 +175,69 @@
         {
             "bufferView" : 1,
             "componentType" : 5126,
-            "count" : 120,
+            "count" : 240,
             "type" : "VEC3"
         },
         {
             "bufferView" : 2,
             "componentType" : 5126,
-            "count" : 120,
+            "count" : 240,
             "type" : "VEC4"
         },
         {
             "bufferView" : 3,
             "componentType" : 5126,
-            "count" : 120,
+            "count" : 240,
             "type" : "VEC3"
         },
         {
             "bufferView" : 4,
             "componentType" : 5126,
-            "count" : 120,
+            "count" : 240,
             "type" : "VEC4"
         },
         {
             "bufferView" : 5,
             "componentType" : 5126,
-            "count" : 120,
+            "count" : 240,
             "type" : "VEC3"
         }
     ],
     "bufferViews" : [
         {
             "buffer" : 0,
-            "byteLength" : 480,
+            "byteLength" : 960,
             "byteOffset" : 0
         },
         {
             "buffer" : 0,
-            "byteLength" : 1440,
-            "byteOffset" : 480
+            "byteLength" : 2880,
+            "byteOffset" : 960
         },
         {
             "buffer" : 0,
-            "byteLength" : 1920,
-            "byteOffset" : 1920
-        },
-        {
-            "buffer" : 0,
-            "byteLength" : 1440,
+            "byteLength" : 3840,
             "byteOffset" : 3840
         },
         {
             "buffer" : 0,
-            "byteLength" : 1920,
-            "byteOffset" : 5280
+            "byteLength" : 2880,
+            "byteOffset" : 7680
         },
         {
             "buffer" : 0,
-            "byteLength" : 1440,
-            "byteOffset" : 7200
+            "byteLength" : 3840,
+            "byteOffset" : 10560
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 2880,
+            "byteOffset" : 14400
         }
     ],
     "buffers" : [
         {
-            "byteLength" : 8640,
+            "byteLength" : 17280,
             "uri" : "lightAndCamera.bin"
         }
     ]
