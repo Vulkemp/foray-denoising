@@ -44,15 +44,15 @@
             },
             "name" : "Light",
             "rotation" : [
-                -0.2841663062572479,
-                0.7269423604011536,
+                -0.28416627645492554,
+                0.7269424200057983,
                 0.34203392267227173,
                 0.5232754349708557
             ],
             "translation" : [
-                4.076245307922363,
-                5.903861999511719,
-                -1.0054539442062378
+                4.076242446899414,
+                5.903863906860352,
+                -1.0054528713226318
             ]
         },
         {
@@ -60,14 +60,14 @@
             "name" : "Camera",
             "rotation" : [
                 -0.20997299253940582,
-                0.3857799470424652,
+                0.3857799768447876,
                 0.09062844514846802,
                 0.8937962055206299
             ],
             "translation" : [
-                7.358891487121582,
-                4.958309173583984,
-                6.925790786743164
+                10.248891830444336,
+                7.418309211730957,
+                5.695790767669678
             ]
         }
     ],
@@ -84,6 +84,49 @@
         }
     ],
     "animations" : [
+        {
+            "channels" : [
+                {
+                    "sampler" : 0,
+                    "target" : {
+                        "node" : 0,
+                        "path" : "translation"
+                    }
+                },
+                {
+                    "sampler" : 1,
+                    "target" : {
+                        "node" : 0,
+                        "path" : "rotation"
+                    }
+                },
+                {
+                    "sampler" : 2,
+                    "target" : {
+                        "node" : 0,
+                        "path" : "scale"
+                    }
+                }
+            ],
+            "name" : "Light",
+            "samplers" : [
+                {
+                    "input" : 0,
+                    "interpolation" : "LINEAR",
+                    "output" : 1
+                },
+                {
+                    "input" : 0,
+                    "interpolation" : "LINEAR",
+                    "output" : 2
+                },
+                {
+                    "input" : 0,
+                    "interpolation" : "LINEAR",
+                    "output" : 3
+                }
+            ]
+        },
         {
             "channels" : [
                 {
@@ -106,12 +149,12 @@
                 {
                     "input" : 0,
                     "interpolation" : "LINEAR",
-                    "output" : 1
+                    "output" : 4
                 },
                 {
                     "input" : 0,
                     "interpolation" : "LINEAR",
-                    "output" : 2
+                    "output" : 5
                 }
             ]
         }
@@ -133,10 +176,28 @@
             "bufferView" : 1,
             "componentType" : 5126,
             "count" : 120,
-            "type" : "VEC4"
+            "type" : "VEC3"
         },
         {
             "bufferView" : 2,
+            "componentType" : 5126,
+            "count" : 120,
+            "type" : "VEC4"
+        },
+        {
+            "bufferView" : 3,
+            "componentType" : 5126,
+            "count" : 120,
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 4,
+            "componentType" : 5126,
+            "count" : 120,
+            "type" : "VEC4"
+        },
+        {
+            "bufferView" : 5,
             "componentType" : 5126,
             "count" : 120,
             "type" : "VEC3"
@@ -150,18 +211,33 @@
         },
         {
             "buffer" : 0,
-            "byteLength" : 1920,
+            "byteLength" : 1440,
             "byteOffset" : 480
         },
         {
             "buffer" : 0,
+            "byteLength" : 1920,
+            "byteOffset" : 1920
+        },
+        {
+            "buffer" : 0,
             "byteLength" : 1440,
-            "byteOffset" : 2400
+            "byteOffset" : 3840
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 1920,
+            "byteOffset" : 5280
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 1440,
+            "byteOffset" : 7200
         }
     ],
     "buffers" : [
         {
-            "byteLength" : 3840,
+            "byteLength" : 8640,
             "uri" : "lightAndCamera.bin"
         }
     ]
