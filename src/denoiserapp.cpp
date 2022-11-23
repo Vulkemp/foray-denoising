@@ -5,6 +5,8 @@
 #include <scene/globalcomponents/foray_cameramanager.hpp>
 #include <util/foray_imageloader.hpp>
 #include <scene/globalcomponents/foray_animationmanager.hpp>
+#include <scene/components/foray_camera.hpp>
+#include <filesystem>
 
 namespace denoise {
 
@@ -69,10 +71,18 @@ namespace denoise {
         mScene->UseDefaultCamera(true);
         mScene->UpdateLightManager();
 
+        auto camManager = mScene->GetComponent<foray::scene::gcomp::CameraManager>();
         auto animManager = mScene->GetComponent<foray::scene::gcomp::AnimationManager>();
+        foray::scene::ncomp::Camera* camera = nullptr;
         for (auto& animation : animManager->GetAnimations())
         {
             animation.GetPlaybackConfig().ConstantDelta = 0.01666666667f;
+            camera = (!!camera) ? camera : animation.GetChannels()[0].Target->GetComponent<foray::scene::ncomp::Camera>();
+        }
+
+        if (!!camera)
+        {
+            camManager->SelectCamera(camera);
         }
 
         for(int32_t i = 0; i < scenePaths.size(); i++)
@@ -218,10 +228,25 @@ namespace denoise {
 
     void DenoiserApp::ApiFrameFinishedExecuting(uint64_t frameIndex)
     {
+        namespace fs = std::filesystem;
+
         if(mDenoiserBenchmark.Exists() && mDenoiserBenchmark.LogQueryResults(frameIndex))
         {
             mDenoiserBenchmarkLog = mDenoiserBenchmark.GetLogs().back();
-            mDenoiserBenchmark.GetLogs().clear();
+        }
+        if (frameIndex >= BENCH_FRAMES)
+        {
+            foray::osi::Utf8Path savePath = foray::osi::Utf8Path("bench.csv").MakeAbsolute();
+            std::fstream out((fs::path)savePath, std::ios_base::openmode::_S_out);
+            foray::Assert(out.is_open() && !out.bad(), "Write Benchmark failed");
+            out << mDenoiserBenchmark.GetLogs().front().PrintCsvHeader();
+            for (const foray::bench::BenchmarkLog& log : mDenoiserBenchmark.GetLogs())
+            {
+                out << log.PrintCsvLine();
+            }
+            out.flush();
+            out.close();
+            mRenderLoop.RequestStop();
         }
     }
 
