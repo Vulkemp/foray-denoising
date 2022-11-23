@@ -40,6 +40,7 @@ namespace denoise {
 
       protected:
         virtual void ApiBeforeInit() override;
+        virtual void         ApiBeforeInstanceCreate(vkb::InstanceBuilder& builder) override;
         virtual void ApiBeforeDeviceSelection(vkb::PhysicalDeviceSelector& pds) override;
         virtual void ApiBeforeDeviceBuilding(vkb::DeviceBuilder& deviceBuilder) override;
         virtual void ApiInit() override;
