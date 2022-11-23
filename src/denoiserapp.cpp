@@ -4,6 +4,7 @@
 #include <imgui/imgui.h>
 #include <scene/globalcomponents/foray_cameramanager.hpp>
 #include <util/foray_imageloader.hpp>
+#include <scene/globalcomponents/foray_animationmanager.hpp>
 
 namespace denoise {
 
@@ -50,8 +51,8 @@ namespace denoise {
     {
         std::vector<std::string> scenePaths({
             // SCENE_PATH,
-            DATA_DIR "/gltf/outdoorbox/scene.gltf",
-            // DATA_DIR "/intel-sponza/Main.1_Sponza/NewSponza_Main_glTF_002.gltf",
+            // DATA_DIR "/gltf/outdoorbox/scene.gltf",
+            DATA_DIR "/intel-sponza/Main.1_Sponza/NewSponza_Main_glTF_002.gltf",
             DATA_DIR "/gltf/lightandcam/lightAndCamera.gltf",
             // DATA_DIR "/intel-sponza/PKG_D.1_10k_Candles/NewSponza_4_Combined_glTF.gltf"
         });
@@ -65,8 +66,14 @@ namespace denoise {
         }
 
         mScene->UpdateTlasManager();
-        // mScene->UseDefaultCamera(true);
+        mScene->UseDefaultCamera(true);
         mScene->UpdateLightManager();
+
+        auto animManager = mScene->GetComponent<foray::scene::gcomp::AnimationManager>();
+        for (auto& animation : animManager->GetAnimations())
+        {
+            animation.GetPlaybackConfig().ConstantDelta = 0.01666666667f;
+        }
 
         for(int32_t i = 0; i < scenePaths.size(); i++)
         {
