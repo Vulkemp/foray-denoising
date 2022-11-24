@@ -22,9 +22,16 @@ namespace denoise {
 #endif
     }
 
+    void DenoiserApp::ApiBeforeInstanceCreate(vkb::InstanceBuilder& builder) 
+    {
+        builder.enable_extension(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME);
+    }
+
     void DenoiserApp::ApiBeforeDeviceSelection(vkb::PhysicalDeviceSelector& pds)
     {
         pds.add_required_extension(VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME);
+        pds.add_required_extension(VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME);
+        pds.add_required_extension(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
 #ifdef WIN32
         pds.add_required_extension(VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME);
         pds.add_required_extension(VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME);
