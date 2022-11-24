@@ -359,6 +359,7 @@ namespace denoise {
                             if(ImGui::Selectable(cameraLabel.c_str(), selected))
                             {
                                 camManager->SelectCamera(cameras[i]);
+                                mActiveDenoiser->IgnoreHistoryNextFrame();
                             }
                         }
 
