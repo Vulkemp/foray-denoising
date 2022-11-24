@@ -1,12 +1,12 @@
 #include "denoiserapp.hpp"
 #include <bench/foray_hostbenchmark.hpp>
+#include <filesystem>
 #include <gltf/foray_modelconverter.hpp>
 #include <imgui/imgui.h>
+#include <scene/components/foray_camera.hpp>
+#include <scene/globalcomponents/foray_animationmanager.hpp>
 #include <scene/globalcomponents/foray_cameramanager.hpp>
 #include <util/foray_imageloader.hpp>
-#include <scene/globalcomponents/foray_animationmanager.hpp>
-#include <scene/components/foray_camera.hpp>
-#include <filesystem>
 
 namespace denoise {
 
@@ -71,17 +71,18 @@ namespace denoise {
         mScene->UseDefaultCamera(true);
         mScene->UpdateLightManager();
 
-        auto camManager = mScene->GetComponent<foray::scene::gcomp::CameraManager>();
-        auto animManager = mScene->GetComponent<foray::scene::gcomp::AnimationManager>();
-        foray::scene::ncomp::Camera* camera = nullptr;
-        for (auto& animation : animManager->GetAnimations())
+        auto                         camManager  = mScene->GetComponent<foray::scene::gcomp::CameraManager>();
+        auto                         animManager = mScene->GetComponent<foray::scene::gcomp::AnimationManager>();
+        foray::scene::ncomp::Camera* camera      = nullptr;
+        for(auto& animation : animManager->GetAnimations())
         {
             animation.GetPlaybackConfig().ConstantDelta = 0.01666666667f;
-            camera = (!!camera) ? camera : animation.GetChannels()[0].Target->GetComponent<foray::scene::ncomp::Camera>();
+            camera                                      = (!!camera) ? camera : animation.GetChannels()[0].Target->GetComponent<foray::scene::ncomp::Camera>();
         }
 
-        if (!!camera)
+        if(!!camera)
         {
+            camera->SetName("Animated Camera");
             camManager->SelectCamera(camera);
         }
 
@@ -234,13 +235,13 @@ namespace denoise {
         {
             mDenoiserBenchmarkLog = mDenoiserBenchmark.GetLogs().back();
         }
-        if (frameIndex >= BENCH_FRAMES)
+        if(frameIndex >= BENCH_FRAMES)
         {
             foray::osi::Utf8Path savePath = foray::osi::Utf8Path("bench.csv").MakeAbsolute();
-            std::fstream out((fs::path)savePath, std::ios_base::openmode::_S_out);
+            std::fstream         out((fs::path)savePath, std::ios_base::openmode::_S_out);
             foray::Assert(out.is_open() && !out.bad(), "Write Benchmark failed");
             out << mDenoiserBenchmark.GetLogs().front().PrintCsvHeader();
-            for (const foray::bench::BenchmarkLog& log : mDenoiserBenchmark.GetLogs())
+            for(const foray::bench::BenchmarkLog& log : mDenoiserBenchmark.GetLogs())
             {
                 out << log.PrintCsvLine();
             }
@@ -331,23 +332,31 @@ namespace denoise {
                 if(cameras.size() > 0)
                 {
                     uint idx = 0;
-                    for (auto camera : cameras)
+                    for(auto camera : cameras)
                     {
-                        if (camera == camManager->GetSelectedCamera())
+                        if(camera == camManager->GetSelectedCamera())
                         {
                             break;
                         }
                         idx++;
                     }
-                    std::string denoiserLabel = fmt::format("Camera #{}", idx);
-                    if(ImGui::BeginCombo("Camera", denoiserLabel.c_str()))
+                    std::string cameraLabel = cameras[idx]->GetName();
+                    if(cameraLabel.size() == 0)
+                    {
+                        cameraLabel = fmt::format("Camera #{}", idx);
+                    }
+                    if(ImGui::BeginCombo("Camera", cameraLabel.c_str()))
                     {
 
                         for(int32_t i = 0; i < cameras.size(); i++)
                         {
-                            bool        selected = idx == i;
-                            std::string name     = fmt::format("Camera #{}", i);
-                            if(ImGui::Selectable(name.c_str(), selected))
+                            bool        selected    = idx == i;
+                            std::string cameraLabel = cameras[i]->GetName();
+                            if(cameraLabel.size() == 0)
+                            {
+                                cameraLabel = fmt::format("Camera #{}", i);
+                            }
+                            if(ImGui::Selectable(cameraLabel.c_str(), selected))
                             {
                                 camManager->SelectCamera(cameras[i]);
                             }

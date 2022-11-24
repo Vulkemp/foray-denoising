@@ -32,7 +32,7 @@ namespace denoise {
 
     inline const char* SCENE_PATH = DATA_DIR "/gltf/testbox/scene.gltf";
 
-    inline const uint32_t BENCH_FRAMES = 20;
+    inline const uint32_t BENCH_FRAMES = 200000;
 
     class DenoiserApp : public foray::base::DefaultAppBase
     {
