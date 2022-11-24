@@ -12,4 +12,4 @@
 	url = https://github.com/Vulkemp/foray-denoiser-bmfr
 [submodule "denoisers/foray-denoiser-nrd"]
 	path = denoisers/foray-denoiser-nrd
-	url = https://github.com/Vulkemp/foray-denoiser-nrd.git
+	url = https://github.com/Vulkemp/foray-denoiser-nrd
