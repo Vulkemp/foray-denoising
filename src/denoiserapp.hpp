@@ -27,6 +27,7 @@
 #include <bench/foray_devicebenchmark.hpp>
 #include <stages/foray_denoiserstage.hpp>
 #include <util/foray_noisesource.hpp>
+#include <foray_nrd.hpp>
 
 namespace denoise {
 
@@ -83,12 +84,13 @@ namespace denoise {
 #ifdef ENABLE_OPTIX
         foray::optix::OptiXDenoiserStage mOptiXDenoiser;
 #endif
+        foray::nrdd::NrdDenoiser mNrdDenoiser;
 
         foray::bench::DeviceBenchmark mDenoiserBenchmark;
         foray::bench::BenchmarkLog    mDenoiserBenchmarkLog;
 
         int32_t                                    mActiveDenoiserIndex = 0;
-        std::vector<foray::stages::DenoiserStage*> mDenoisers           = {&mBmfrDenoiser, &mASvgfDenoiser,
+        std::vector<foray::stages::DenoiserStage*> mDenoisers           = {&mBmfrDenoiser, &mNrdDenoiser, &mASvgfDenoiser,
 #ifdef ENABLE_OPTIX
                                                                  &mOptiXDenoiser
 #endif

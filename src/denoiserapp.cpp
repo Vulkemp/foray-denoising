@@ -22,7 +22,7 @@ namespace denoise {
 #endif
     }
 
-    void DenoiserApp::ApiBeforeInstanceCreate(vkb::InstanceBuilder& builder) 
+    void DenoiserApp::ApiBeforeInstanceCreate(vkb::InstanceBuilder& builder)
     {
         builder.enable_extension(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME);
     }
@@ -60,9 +60,9 @@ namespace denoise {
     {
         std::vector<std::string> scenePaths({
             // SCENE_PATH,
-            // DATA_DIR "/gltf/outdoorbox/scene.gltf",
-            DATA_DIR "/intel-sponza/Main.1_Sponza/NewSponza_Main_glTF_002.gltf",
-            DATA_DIR "/gltf/lightandcam/lightAndCamera.gltf",
+            DATA_DIR "/gltf/testbox/scene.gltf",
+            // DATA_DIR "/intel-sponza/Main.1_Sponza/NewSponza_Main_glTF_002.gltf",
+            // DATA_DIR "/gltf/lightandcam/lightAndCamera.gltf",
             // DATA_DIR "/intel-sponza/PKG_D.1_10k_Candles/NewSponza_4_Combined_glTF.gltf"
         });
 
@@ -78,19 +78,22 @@ namespace denoise {
         mScene->UseDefaultCamera(true);
         mScene->UpdateLightManager();
 
-        auto                         camManager  = mScene->GetComponent<foray::scene::gcomp::CameraManager>();
-        auto                         animManager = mScene->GetComponent<foray::scene::gcomp::AnimationManager>();
-        foray::scene::ncomp::Camera* camera      = nullptr;
-        for(auto& animation : animManager->GetAnimations())
+        auto camManager  = mScene->GetComponent<foray::scene::gcomp::CameraManager>();
+        auto animManager = mScene->GetComponent<foray::scene::gcomp::AnimationManager>();
+        if(!!animManager)
         {
-            animation.GetPlaybackConfig().ConstantDelta = 0.01666666667f;
-            camera                                      = (!!camera) ? camera : animation.GetChannels()[0].Target->GetComponent<foray::scene::ncomp::Camera>();
-        }
+            foray::scene::ncomp::Camera* camera = nullptr;
+            for(auto& animation : animManager->GetAnimations())
+            {
+                animation.GetPlaybackConfig().ConstantDelta = 0.01666666667f;
+                camera                                      = (!!camera) ? camera : animation.GetChannels()[0].Target->GetComponent<foray::scene::ncomp::Camera>();
+            }
 
-        if(!!camera)
-        {
-            camera->SetName("Animated Camera");
-            camManager->SelectCamera(camera);
+            if(!!camera)
+            {
+                camera->SetName("Animated Camera");
+                camManager->SelectCamera(camera);
+            }
         }
 
         for(int32_t i = 0; i < scenePaths.size(); i++)
@@ -391,6 +394,7 @@ namespace denoise {
 #ifdef ENABLE_OPTIX
         mOptiXDenoiser.Destroy();
 #endif
+        mNrdDenoiser.Destroy();
         mGbufferStage.Destroy();
         mImguiStage.Destroy();
         mRaytraycingStage.Destroy();
