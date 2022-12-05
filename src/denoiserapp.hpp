@@ -25,12 +25,17 @@
 #include <foray_optix.hpp>
 #endif
 #include <bench/foray_devicebenchmark.hpp>
+#include <foray_nrd.hpp>
 #include <stages/foray_denoiserstage.hpp>
 #include <util/foray_noisesource.hpp>
 
 namespace denoise {
 
     inline const char* SCENE_PATH = DATA_DIR "/gltf/testbox/scene.gltf";
+
+#if ENABLE_BENCHMODE
+    inline const uint32_t BENCH_FRAMES = 2000;
+#endif
 
     class DenoiserApp : public foray::base::DefaultAppBase
     {
@@ -40,7 +45,7 @@ namespace denoise {
 
       protected:
         virtual void ApiBeforeInit() override;
-        virtual void         ApiBeforeInstanceCreate(vkb::InstanceBuilder& builder) override;
+        virtual void ApiBeforeInstanceCreate(vkb::InstanceBuilder& builder) override;
         virtual void ApiBeforeDeviceSelection(vkb::PhysicalDeviceSelector& pds) override;
         virtual void ApiBeforeDeviceBuilding(vkb::DeviceBuilder& deviceBuilder) override;
         virtual void ApiInit() override;
@@ -81,12 +86,13 @@ namespace denoise {
 #ifdef ENABLE_OPTIX
         foray::optix::OptiXDenoiserStage mOptiXDenoiser;
 #endif
+        foray::nrdd::NrdDenoiser mNrdDenoiser;
 
         foray::bench::DeviceBenchmark mDenoiserBenchmark;
         foray::bench::BenchmarkLog    mDenoiserBenchmarkLog;
 
         int32_t                                    mActiveDenoiserIndex = 0;
-        std::vector<foray::stages::DenoiserStage*> mDenoisers           = {&mBmfrDenoiser, &mASvgfDenoiser,
+        std::vector<foray::stages::DenoiserStage*> mDenoisers           = {&mBmfrDenoiser, &mNrdDenoiser, &mASvgfDenoiser,
 #ifdef ENABLE_OPTIX
                                                                  &mOptiXDenoiser
 #endif

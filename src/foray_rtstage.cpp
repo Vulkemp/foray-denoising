@@ -11,16 +11,16 @@ namespace denoise {
 
     void ComplexRaytracingStage::CreateRtPipeline()
     {
-        mRaygen.LoadFromSource(mContext, RAYGEN_FILE);
-        mClosestHit.LoadFromSource(mContext, CLOSESTHIT_FILE);
-        mAnyHit.LoadFromSource(mContext, ANYHIT_FILE);
-        mMiss.LoadFromSource(mContext, MISS_FILE);
-        mVisiMiss.LoadFromSource(mContext, VISI_MISS_FILE);
-
-        mShaderSourcePaths.insert(mShaderSourcePaths.begin(), {RAYGEN_FILE, CLOSESTHIT_FILE, ANYHIT_FILE, MISS_FILE, VISI_MISS_FILE});
+        mShaderKeys.push_back(mRaygen.CompileFromSource(mContext, RAYGEN_FILE));
+        mShaderKeys.push_back(mClosestHit.CompileFromSource(mContext, CLOSESTHIT_FILE));
+        mShaderKeys.push_back(mAnyHit.CompileFromSource(mContext, ANYHIT_FILE));
+        mShaderKeys.push_back(mMiss.CompileFromSource(mContext, MISS_FILE));
+        mShaderKeys.push_back(mVisiMiss.CompileFromSource(mContext, VISI_MISS_FILE));
+        mShaderKeys.push_back(mVisiAnyHit.CompileFromSource(mContext, VISI_ANYHIT_FILE));
 
         mPipeline.GetRaygenSbt().SetGroup(0, &mRaygen);
         mPipeline.GetHitSbt().SetGroup(0, &mClosestHit, &mAnyHit, nullptr);
+        mPipeline.GetHitSbt().SetGroup(1, nullptr, &mVisiAnyHit, nullptr);
         mPipeline.GetMissSbt().SetGroup(0, &mMiss);
         mPipeline.GetMissSbt().SetGroup(1, &mVisiMiss);
         mPipeline.Build(mContext, mPipelineLayout);
@@ -34,6 +34,7 @@ namespace denoise {
         mAnyHit.Destroy();
         mMiss.Destroy();
         mVisiMiss.Destroy();
+        mVisiAnyHit.Destroy();
     }
 
     void ComplexRaytracingStage::CreateOrUpdateDescriptors()

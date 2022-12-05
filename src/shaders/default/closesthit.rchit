@@ -57,7 +57,7 @@ vec3 CollectDirectLight(in vec3 pos, in vec3 normal, in MaterialBufferObject mat
         float len = 0;
         if (light.Type == SimplifiedLightType_Directional)
         {
-            dir = normalize(-light.PosOrDir);
+            dir = normalize(light.PosOrDir);
             len = INFINITY;
         }
         else
@@ -78,8 +78,8 @@ vec3 CollectDirectLight(in vec3 pos, in vec3 normal, in MaterialBufferObject mat
             traceRayEXT(MainTlas, // Top Level Acceleration Structure
                 gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT, // All we care about is the miss shader to tell us the lightsource is visible
                 0xff, // Culling Mask (Possible use: Skip intersection which don't have a specific bit set)
-                0, // SBT record offset (doesn't do anything here since closesthit shaders are skipped)
-                0, // SBT record stride (doesn't do anything here since closesthit shaders are skipped)
+                1,
+                0,
                 1, // Miss Index (the visibility test miss shader)
                 origin, // Ray origin in world space
                 0.001, // Minimum ray travel distance

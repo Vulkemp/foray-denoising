@@ -1,4 +1,4 @@
-sponza_model/
+intel-sponza/
 out/
 .vs/
 downloads/
@@ -14,3 +14,4 @@ glTF-Sample-Models/*
 glTF-Sample-Models
 
 .vscode/settings.json
+src/bench.csv

@@ -1,7 +1,11 @@
 #include "denoiserapp.hpp"
 #include <bench/foray_hostbenchmark.hpp>
+#include <filesystem>
 #include <gltf/foray_modelconverter.hpp>
 #include <imgui/imgui.h>
+#include <scene/components/foray_camera.hpp>
+#include <scene/globalcomponents/foray_animationmanager.hpp>
+#include <scene/globalcomponents/foray_cameramanager.hpp>
 #include <util/foray_imageloader.hpp>
 
 namespace denoise {
@@ -18,7 +22,7 @@ namespace denoise {
 #endif
     }
 
-    void DenoiserApp::ApiBeforeInstanceCreate(vkb::InstanceBuilder& builder) 
+    void DenoiserApp::ApiBeforeInstanceCreate(vkb::InstanceBuilder& builder)
     {
         builder.enable_extension(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME);
     }
@@ -28,6 +32,7 @@ namespace denoise {
         pds.add_required_extension(VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME);
         pds.add_required_extension(VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME);
         pds.add_required_extension(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
+        pds.add_required_extension(VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
 #ifdef WIN32
         pds.add_required_extension(VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME);
         pds.add_required_extension(VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME);
@@ -54,7 +59,13 @@ namespace denoise {
 
     void DenoiserApp::LoadScene()
     {
-        std::vector<std::string> scenePaths({SCENE_PATH});
+        std::vector<std::string> scenePaths({
+            // SCENE_PATH,
+            DATA_DIR "/gltf/testbox/scene.gltf",
+            // DATA_DIR "/intel-sponza/Main.1_Sponza/NewSponza_Main_glTF_002.gltf",
+            // DATA_DIR "/gltf/lightandcam/lightAndCamera.gltf",
+            // DATA_DIR "/intel-sponza/PKG_D.1_10k_Candles/NewSponza_4_Combined_glTF.gltf"
+        });
 
         mScene = std::make_unique<foray::scene::Scene>(&mContext);
         foray::gltf::ModelConverter converter(mScene.get());
@@ -65,8 +76,29 @@ namespace denoise {
         }
 
         mScene->UpdateTlasManager();
-        mScene->UseDefaultCamera(true);
         mScene->UpdateLightManager();
+
+#if !ENABLE_BENCHMODE
+        mScene->UseDefaultCamera(true);
+#else
+        auto camManager  = mScene->GetComponent<foray::scene::gcomp::CameraManager>();
+        auto animManager = mScene->GetComponent<foray::scene::gcomp::AnimationManager>();
+        if(!!animManager)
+        {
+            foray::scene::ncomp::Camera* camera = nullptr;
+            for(auto& animation : animManager->GetAnimations())
+            {
+                animation.GetPlaybackConfig().ConstantDelta = 0.01666666667f;
+                camera                                      = (!!camera) ? camera : animation.GetChannels()[0].Target->GetComponent<foray::scene::ncomp::Camera>();
+            }
+
+            if(!!camera)
+            {
+                camera->SetName("Animated Camera");
+                camManager->SelectCamera(camera);
+            }
+        }
+#endif
 
         for(int32_t i = 0; i < scenePaths.size(); i++)
         {
@@ -137,7 +169,7 @@ namespace denoise {
         mActiveOutput = mOutputs[mActiveOutputIndex];
 
         mImageToSwapchainStage.Init(&mContext, mActiveOutput);
-        mImageToSwapchainStage.SetFlipX(true).SetFlipY(true);
+        mImageToSwapchainStage.SetFlipY(true);
 
         mImguiStage.InitForSwapchain(&mContext);
         mImguiStage.AddWindowDraw([this]() { this->ImGui(); });
@@ -211,11 +243,31 @@ namespace denoise {
 
     void DenoiserApp::ApiFrameFinishedExecuting(uint64_t frameIndex)
     {
+        namespace fs = std::filesystem;
+
         if(mDenoiserBenchmark.Exists() && mDenoiserBenchmark.LogQueryResults(frameIndex))
         {
             mDenoiserBenchmarkLog = mDenoiserBenchmark.GetLogs().back();
+#if !ENABLE_BENCHMODE
             mDenoiserBenchmark.GetLogs().clear();
+#endif
         }
+#if ENABLE_BENCHMODE
+        if(frameIndex >= BENCH_FRAMES)
+        {
+            foray::osi::Utf8Path savePath = foray::osi::Utf8Path("bench.csv").MakeAbsolute();
+            std::fstream         out((fs::path)savePath, std::ios_base::out);
+            foray::Assert(out.is_open() && !out.bad(), "Write Benchmark failed");
+            out << mDenoiserBenchmark.GetLogs().front().PrintCsvHeader();
+            for(const foray::bench::BenchmarkLog& log : mDenoiserBenchmark.GetLogs())
+            {
+                out << log.PrintCsvLine();
+            }
+            out.flush();
+            out.close();
+            mRenderLoop.RequestStop();
+        }
+#endif
     }
 
     void DenoiserApp::ApiOnResized(VkExtent2D size)
@@ -289,6 +341,53 @@ namespace denoise {
             this->mDenoiserBenchmarkLog.PrintImGui();
         }
 
+        {
+            foray::scene::gcomp::CameraManager* camManager = mScene->GetComponent<foray::scene::gcomp::CameraManager>();
+
+            if(!!camManager)
+            {
+                std::vector<foray::scene::ncomp::Camera*> cameras;
+                camManager->GetCameras(cameras);
+                if(cameras.size() > 0)
+                {
+                    uint32_t idx = 0;
+                    for(auto camera : cameras)
+                    {
+                        if(camera == camManager->GetSelectedCamera())
+                        {
+                            break;
+                        }
+                        idx++;
+                    }
+                    std::string cameraLabel = cameras[idx]->GetName();
+                    if(cameraLabel.size() == 0)
+                    {
+                        cameraLabel = fmt::format("Camera #{}", idx);
+                    }
+                    if(ImGui::BeginCombo("Camera", cameraLabel.c_str()))
+                    {
+
+                        for(int32_t i = 0; i < cameras.size(); i++)
+                        {
+                            bool        selected    = idx == i;
+                            std::string cameraLabel = cameras[i]->GetName();
+                            if(cameraLabel.size() == 0)
+                            {
+                                cameraLabel = fmt::format("Camera #{}", i);
+                            }
+                            if(ImGui::Selectable(cameraLabel.c_str(), selected))
+                            {
+                                camManager->SelectCamera(cameras[i]);
+                                mActiveDenoiser->IgnoreHistoryNextFrame();
+                            }
+                        }
+
+                        ImGui::EndCombo();
+                    }
+                }
+            }
+        }
+
         ImGui::End();
     }
 
@@ -304,6 +403,7 @@ namespace denoise {
 #ifdef ENABLE_OPTIX
         mOptiXDenoiser.Destroy();
 #endif
+        mNrdDenoiser.Destroy();
         mGbufferStage.Destroy();
         mImguiStage.Destroy();
         mRaytraycingStage.Destroy();
