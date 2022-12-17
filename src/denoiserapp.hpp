@@ -92,7 +92,7 @@ namespace denoise {
         foray::bench::BenchmarkLog    mDenoiserBenchmarkLog;
 
         int32_t                                    mActiveDenoiserIndex = 0;
-        std::vector<foray::stages::DenoiserStage*> mDenoisers           = {&mBmfrDenoiser, &mNrdDenoiser, &mASvgfDenoiser,
+        std::vector<foray::stages::DenoiserStage*> mDenoisers           = {&mBmfrDenoiser, &mASvgfDenoiser, &mNrdDenoiser,
 #ifdef ENABLE_OPTIX
                                                                  &mOptiXDenoiser
 #endif

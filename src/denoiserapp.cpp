@@ -59,13 +59,7 @@ namespace denoise {
 
     void DenoiserApp::LoadScene()
     {
-        std::vector<std::string> scenePaths({
-            // SCENE_PATH,
-            DATA_DIR "/gltf/testbox/scene.gltf",
-            // DATA_DIR "/intel-sponza/Main.1_Sponza/NewSponza_Main_glTF_002.gltf",
-            // DATA_DIR "/gltf/lightandcam/lightAndCamera.gltf",
-            // DATA_DIR "/intel-sponza/PKG_D.1_10k_Candles/NewSponza_4_Combined_glTF.gltf"
-        });
+        std::vector<std::string> scenePaths({SCENE_PATH});
 
         mScene = std::make_unique<foray::scene::Scene>(&mContext);
         foray::gltf::ModelConverter converter(mScene.get());
@@ -97,6 +91,11 @@ namespace denoise {
                 camera->SetName("Animated Camera");
                 camManager->SelectCamera(camera);
             }
+        }
+
+        if(camManager->GetSelectedCamera() == nullptr)
+        {
+            mScene->UseDefaultCamera(true);
         }
 #endif
 
@@ -195,12 +194,12 @@ namespace denoise {
 
         foray::stages::ExternalDenoiserStage* externalDenoiser = dynamic_cast<foray::stages::ExternalDenoiserStage*>(mActiveDenoiser);
 
-        foray::core::DeviceCommandBuffer& auxCmdBuffer     = renderInfo.GetAuxCommandBuffer(0);
-        foray::core::DeviceCommandBuffer& primaryCmdBuffer = renderInfo.GetPrimaryCommandBuffer();
+        foray::core::DeviceSyncCommandBuffer& auxCmdBuffer     = renderInfo.GetAuxCommandBuffer(0);
+        foray::core::DeviceSyncCommandBuffer& primaryCmdBuffer = renderInfo.GetPrimaryCommandBuffer();
 
-        foray::core::DeviceCommandBuffer* cmdBuffer                 = &primaryCmdBuffer;
-        uint64_t                          timelineValueSignal       = renderInfo.GetFrameNumber() * 2 + 1;
-        uint64_t                          timelineValueWaitExternal = renderInfo.GetFrameNumber() * 2 + 2;
+        foray::core::DeviceSyncCommandBuffer* cmdBuffer                 = &primaryCmdBuffer;
+        uint64_t                              timelineValueSignal       = renderInfo.GetFrameNumber() * 2 + 1;
+        uint64_t                              timelineValueWaitExternal = renderInfo.GetFrameNumber() * 2 + 2;
         if(!!externalDenoiser)
         {
             auxCmdBuffer.GetSignalSemaphores().back().TimelineValue   = timelineValueSignal;
@@ -255,7 +254,9 @@ namespace denoise {
 #if ENABLE_BENCHMODE
         if(frameIndex >= BENCH_FRAMES)
         {
-            foray::osi::Utf8Path savePath = foray::osi::Utf8Path("bench.csv").MakeAbsolute();
+            std::filesystem::path path(SCENE_PATH);
+
+            foray::osi::Utf8Path savePath = foray::osi::Utf8Path(fmt::format("Bench {} {}.csv", path.filename().c_str(), mActiveDenoiser->GetUILabel())).MakeAbsolute();
             std::fstream         out((fs::path)savePath, std::ios_base::out);
             foray::Assert(out.is_open() && !out.bad(), "Write Benchmark failed");
             out << mDenoiserBenchmark.GetLogs().front().PrintCsvHeader();
@@ -440,8 +441,8 @@ namespace denoise {
         {  // Setup semaphores
             for(foray::base::InFlightFrame& frame : mInFlightFrames)
             {
-                foray::core::DeviceCommandBuffer& auxCmdBuffer     = frame.GetAuxiliaryCommandBuffer(0);
-                foray::core::DeviceCommandBuffer& primaryCmdBuffer = frame.GetPrimaryCommandBuffer();
+                foray::core::DeviceSyncCommandBuffer& auxCmdBuffer     = frame.GetAuxiliaryCommandBuffer(0);
+                foray::core::DeviceSyncCommandBuffer& primaryCmdBuffer = frame.GetPrimaryCommandBuffer();
                 auxCmdBuffer.SetSignalSemaphores(std::vector<foray::core::SemaphoreReference>({foray::core::SemaphoreReference::Timeline(mDenoiseSemaphore, 0)}));
                 if(!!externalDenoiser)
                 {

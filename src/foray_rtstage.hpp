@@ -1,6 +1,6 @@
 #pragma once
 #include <foray_api.hpp>
-#include <stages/foray_raytracingstage.hpp>
+#include <stages/foray_defaultraytracingstage.hpp>
 #include <util/foray_noisesource.hpp>
 #include <scene/globalcomponents/foray_lightmanager.hpp>
 
@@ -13,14 +13,14 @@ namespace denoise {
     inline const std::string VISI_MISS_FILE  = APP_SHADER_DIR "/visibilitytest/miss.rmiss";
     inline const std::string VISI_ANYHIT_FILE  = APP_SHADER_DIR "/visibilitytest/anyhit.rahit";
 
-    class ComplexRaytracingStage : public foray::stages::ExtRaytracingStage
+    class ComplexRaytracingStage : public foray::stages::DefaultRaytracingStageBase
     {
       public:
         virtual void Init(foray::core::Context* context, foray::scene::Scene* scene);
 
       protected:
-        virtual void CreateRtPipeline() override;
-        virtual void DestroyRtPipeline() override;
+        virtual void ApiCreateRtPipeline() override;
+        virtual void ApiDestroyRtPipeline() override;
 
         virtual void CreateOrUpdateDescriptors() override;
 

@@ -6,10 +6,10 @@ namespace denoise {
     void ComplexRaytracingStage::Init(foray::core::Context* context, foray::scene::Scene* scene)
     {
         mLightManager = scene->GetComponent<foray::scene::gcomp::LightManager>();
-        foray::stages::ExtRaytracingStage::Init(context, scene);
+        foray::stages::DefaultRaytracingStageBase::Init(context, scene);
     }
 
-    void ComplexRaytracingStage::CreateRtPipeline()
+    void ComplexRaytracingStage::ApiCreateRtPipeline()
     {
         mShaderKeys.push_back(mRaygen.CompileFromSource(mContext, RAYGEN_FILE));
         mShaderKeys.push_back(mClosestHit.CompileFromSource(mContext, CLOSESTHIT_FILE));
@@ -26,7 +26,7 @@ namespace denoise {
         mPipeline.Build(mContext, mPipelineLayout);
     }
 
-    void ComplexRaytracingStage::DestroyRtPipeline()
+    void ComplexRaytracingStage::ApiDestroyRtPipeline()
     {
         mPipeline.Destroy();
         mRaygen.Destroy();
@@ -41,8 +41,8 @@ namespace denoise {
     {
         const uint32_t bindpoint_lights = 11;
 
-        mDescriptorSet.SetDescriptorAt(bindpoint_lights, mLightManager->GetBuffer().GetVkDescriptorInfo(), VkDescriptorType::VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, RTSTAGEFLAGS);
+        mDescriptorSet.SetDescriptorAt(bindpoint_lights, mLightManager->GetBuffer().GetVkDescriptorInfo(), VkDescriptorType::VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, foray::stages::RTSTAGEFLAGS);
 
-        foray::stages::ExtRaytracingStage::CreateOrUpdateDescriptors();
+        foray::stages::DefaultRaytracingStageBase::CreateOrUpdateDescriptors();
     }
 }  // namespace denoise
