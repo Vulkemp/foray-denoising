@@ -1,15 +1,15 @@
 # This python scripts downloads the intel sponza scene and unpacks it.
 # Files from https://www.intel.com/content/www/us/en/developer/topic-technology/graphics-research/samples.html
-# as of 28.04.2022
+# Working as of 17.12.2022
 
 import os
 
 # download links
 downloads = {
     "sponza_base_scene" : "https://cdrdv2.intel.com/v1/dl/getContent/726594",
-    # "colorful_curtains" : "https://cdrdv2.intel.com/v1/dl/getContent/726650",
-    # "ivy" : "https://cdrdv2.intel.com/v1/dl/getContent/726656",
-    # "trees" : "https://cdrdv2.intel.com/v1/dl/getContent/726662",
+    "colorful_curtains" : "https://cdrdv2.intel.com/v1/dl/getContent/726650",
+    "ivy" : "https://cdrdv2.intel.com/v1/dl/getContent/726656",
+    "trees" : "https://cdrdv2.intel.com/v1/dl/getContent/726662",
     "emissive_candles" : "https://cdrdv2.intel.com/v1/dl/getContent/726676",
 }
 
