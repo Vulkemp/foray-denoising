@@ -5,4 +5,3 @@ endif()
 
 add_subdirectory("foray-denoiser-asvgf")
 add_subdirectory("foray-denoiser-bmfr")
-add_subdirectory("foray-denoiser-nrd")

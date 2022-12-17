@@ -32,7 +32,6 @@ target_link_libraries(
 	PUBLIC foray
 	PUBLIC foray-denoiser-asvgf
 	PUBLIC foray-denoiser-bmfr
-	PUBLIC foray-denoiser-nrd
 )
 
 # Windows requires SDL2 libs linked specifically
@@ -50,7 +49,6 @@ target_include_directories(
 	PUBLIC "${CMAKE_SOURCE_DIR}/foray/third_party"
 	PUBLIC "${CMAKE_SOURCE_DIR}/denoisers/foray-denoiser-asvgf/src"
 	PUBLIC "${CMAKE_SOURCE_DIR}/denoisers/foray-denoiser-bmfr/src"
-	PUBLIC "${CMAKE_SOURCE_DIR}/denoisers/foray-denoiser-nrd/src"
 	PUBLIC ${Vulkan_INCLUDE_DIR}
 )
 

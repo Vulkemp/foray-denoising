@@ -10,6 +10,3 @@
 [submodule "denoisers/foray-denoiser-bmfr"]
 	path = denoisers/foray-denoiser-bmfr
 	url = https://github.com/Vulkemp/foray-denoiser-bmfr
-[submodule "denoisers/foray-denoiser-nrd"]
-	path = denoisers/foray-denoiser-nrd
-	url = https://github.com/Vulkemp/foray-denoiser-nrd

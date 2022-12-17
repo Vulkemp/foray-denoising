@@ -404,7 +404,6 @@ namespace denoise {
 #ifdef ENABLE_OPTIX
         mOptiXDenoiser.Destroy();
 #endif
-        mNrdDenoiser.Destroy();
         mGbufferStage.Destroy();
         mImguiStage.Destroy();
         mRaytraycingStage.Destroy();
